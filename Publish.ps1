@@ -24,23 +24,21 @@ Write-Error "Local branch is not up to date with origin/main. Pull or push first
 exit 1
 }
 
-# Ensure the dotnet global tools directory is on PATH so 'nbgv' resolves
-# even in shells that were opened before the tool was installed.
-$toolsDir = Join-Path $HOME '.dotnet/tools'
-if ((Test-Path $toolsDir) -and (($env:PATH -split [IO.Path]::PathSeparator) -notcontains $toolsDir)) {
-$env:PATH = "$toolsDir$([IO.Path]::PathSeparator)$env:PATH"
-}
-
-if (-not (Get-Command nbgv -ErrorAction SilentlyContinue)) {
-Write-Error "nbgv (Nerdbank.GitVersioning) is not available. Install it with: dotnet tool install -g nbgv"
+# Determine the version from Nerdbank.GitVersioning via the project's MSBuild
+# targets (the referenced NuGet package), so this does not depend on the global
+# 'nbgv' CLI tool being installed or on PATH. The GetBuildVersion target must be
+# run for the computed version to be populated (a plain -getProperty evaluation
+# returns the static version.json value without the Git height).
+$project = Join-Path $PSScriptRoot 'Passbolt.Api/Passbolt.Api.csproj'
+$buildOutput = dotnet build $project -t:GetBuildVersion --getProperty:NuGetPackageVersion -nologo -v:quiet
+if ($LASTEXITCODE -ne 0) {
+Write-Error "Failed to determine version from Nerdbank.GitVersioning.`n$buildOutput"
 exit 1
 }
-
-$versionJson = nbgv get-version -f json | ConvertFrom-Json
-$version = $versionJson.NuGetPackageVersion
+$version = ($buildOutput | Select-Object -Last 1).ToString().Trim()
 
 if (-not $version) {
-Write-Error "Failed to determine version from nbgv."
+Write-Error "Failed to determine version from Nerdbank.GitVersioning."
 exit 1
 }
 
