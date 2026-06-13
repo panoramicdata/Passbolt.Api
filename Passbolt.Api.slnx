@@ -1,4 +1,18 @@
 <Solution>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+    <File Path=".gitattributes" />
+    <File Path=".gitignore" />
+    <File Path="CONTRIBUTING.md" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+    <File Path="global.json" />
+    <File Path="LICENSE" />
+    <File Path="Publish.ps1" />
+    <File Path="README.md" />
+    <File Path="SECURITY.md" />
+    <File Path="version.json" />
+  </Folder>
   <Project Path="Passbolt.Api.Test/Passbolt.Api.Test.csproj" />
   <Project Path="Passbolt.Api/Passbolt.Api.csproj" />
 </Solution>

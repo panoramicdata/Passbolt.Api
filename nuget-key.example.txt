@@ -1,6 +1,0 @@
-# NuGet API Key
-#
-# Replace this file content with your actual NuGet API key when using manual local publishing scripts.
-# Keep this file private and do not commit it.
-
-YOUR_NUGET_API_KEY_HERE

@@ -24,8 +24,20 @@ Write-Error "Local branch is not up to date with origin/main. Pull or push first
 exit 1
 }
 
+# Ensure the dotnet global tools directory is on PATH so 'nbgv' resolves
+# even in shells that were opened before the tool was installed.
+$toolsDir = Join-Path $HOME '.dotnet/tools'
+if ((Test-Path $toolsDir) -and (($env:PATH -split [IO.Path]::PathSeparator) -notcontains $toolsDir)) {
+$env:PATH = "$toolsDir$([IO.Path]::PathSeparator)$env:PATH"
+}
+
+if (-not (Get-Command nbgv -ErrorAction SilentlyContinue)) {
+Write-Error "nbgv (Nerdbank.GitVersioning) is not available. Install it with: dotnet tool install -g nbgv"
+exit 1
+}
+
 $versionJson = nbgv get-version -f json | ConvertFrom-Json
-$version = $versionJson.SimpleVersion
+$version = $versionJson.NuGetPackageVersion
 
 if (-not $version) {
 Write-Error "Failed to determine version from nbgv."
