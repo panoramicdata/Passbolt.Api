@@ -1,0 +1,42 @@
+# editorconfig.org
+root = true
+
+# All files
+[*]
+indent_style = tab
+indent_size = 4
+tab_width = 4
+end_of_line = crlf
+charset = utf-8
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+# XML files
+[*.{xml,csproj,props,targets,slnx}]
+indent_style = tab
+indent_size = 4
+tab_width = 4
+
+# JSON files
+[*.json]
+indent_style = tab
+indent_size = 4
+tab_width = 4
+
+# YAML files
+[*.{yml,yaml}]
+indent_style = space
+indent_size = 2
+
+# Markdown files
+[*.md]
+trim_trailing_whitespace = false
+
+# C# files
+[*.cs]
+
+# Namespace preferences
+csharp_style_namespace_declarations = file_scoped:error
+
+# using directive placement
+csharp_using_directive_placement = outside_namespace:warning

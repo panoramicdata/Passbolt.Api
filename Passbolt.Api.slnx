@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="Passbolt.Api.Test/Passbolt.Api.Test.csproj" />
+  <Project Path="Passbolt.Api/Passbolt.Api.csproj" />
+</Solution>
