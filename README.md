@@ -57,11 +57,19 @@ foreach (var resource in resources.Body ?? [])
 
 ## Supported Endpoints
 
+### Core Entities
 - **Status**: Server status and healthcheck information
-- **Users**: Create, read, update, and list users
-- **Groups**: Create, read, update, and list groups  
-- **Resources**: Create, read, update, and list password resources
-- **Folders**: Create, read, update, and list folders
+- **Users**: CRUD operations and listing for user management
+- **Groups**: CRUD operations and listing for group management
+- **Resources**: CRUD operations, listing, searching by name/URI, and resource sharing
+- **Folders**: CRUD operations and listing for folder management
+
+### Related Features
+- **Comments**: Create, read, and delete comments on resources
+- **Permissions**: Query and filter permissions by resource or user
+- **Roles**: List available roles and retrieve role details
+- **Avatars**: Retrieve user profile images
+- **Me**: Access current authenticated user's profile information
 
 ## Links
 

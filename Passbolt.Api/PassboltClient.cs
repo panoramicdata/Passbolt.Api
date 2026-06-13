@@ -35,11 +35,16 @@ public sealed class PassboltClient : IDisposable
 			_httpClient = options.HttpClient!;
 		}
 
+		Avatars = RestService.For<IPassboltAvatarsApi>(_httpClient);
+		Comments = RestService.For<IPassboltCommentsApi>(_httpClient);
+		Folders = RestService.For<IPassboltFoldersApi>(_httpClient);
+		Groups = RestService.For<IPassboltGroupsApi>(_httpClient);
+		Me = RestService.For<IPassboltMeApi>(_httpClient);
+		Permissions = RestService.For<IPassboltPermissionsApi>(_httpClient);
+		Resources = RestService.For<IPassboltResourcesApi>(_httpClient);
+		Roles = RestService.For<IPassboltRolesApi>(_httpClient);
 		Status = RestService.For<IPassboltStatusApi>(_httpClient);
 		Users = RestService.For<IPassboltUsersApi>(_httpClient);
-		Groups = RestService.For<IPassboltGroupsApi>(_httpClient);
-		Resources = RestService.For<IPassboltResourcesApi>(_httpClient);
-		Folders = RestService.For<IPassboltFoldersApi>(_httpClient);
 	}
 
 	/// <summary>
@@ -48,7 +53,7 @@ public sealed class PassboltClient : IDisposable
 	public IPassboltStatusApi Status { get; }
 
 	/// <summary>
-	/// Gets the API for accessing Passbolt users, groups, resources, and folders endpoints.
+	/// Gets the API for accessing Passbolt users endpoints.
 	/// </summary>
 	public IPassboltUsersApi Users { get; }
 
@@ -66,6 +71,31 @@ public sealed class PassboltClient : IDisposable
 	/// Gets the API for accessing Passbolt folders endpoints.
 	/// </summary>
 	public IPassboltFoldersApi Folders { get; }
+
+	/// <summary>
+	/// Gets the API for accessing Passbolt comments endpoints.
+	/// </summary>
+	public IPassboltCommentsApi Comments { get; }
+
+	/// <summary>
+	/// Gets the API for accessing Passbolt permissions endpoints.
+	/// </summary>
+	public IPassboltPermissionsApi Permissions { get; }
+
+	/// <summary>
+	/// Gets the API for accessing the current authenticated user's profile.
+	/// </summary>
+	public IPassboltMeApi Me { get; }
+
+	/// <summary>
+	/// Gets the API for accessing Passbolt avatars endpoints.
+	/// </summary>
+	public IPassboltAvatarsApi Avatars { get; }
+
+	/// <summary>
+	/// Gets the API for accessing Passbolt roles endpoints.
+	/// </summary>
+	public IPassboltRolesApi Roles { get; }
 
 	/// <inheritdoc />
 	public void Dispose()
