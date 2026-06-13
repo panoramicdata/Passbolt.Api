@@ -3,6 +3,7 @@
 [![NuGet](https://img.shields.io/nuget/v/Passbolt.Api.svg)](https://www.nuget.org/packages/Passbolt.Api)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![.NET 10](https://img.shields.io/badge/.NET-10.0-blue.svg)](https://dotnet.microsoft.com/download)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/86cd75f6039248d68769cd6e63784397)](https://app.codacy.com/gh/panoramicdata/Passbolt.Api/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
 
 Typed .NET client primitives for integrating with Passbolt APIs in a safe, testable, and DI-friendly way.
 
