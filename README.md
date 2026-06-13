@@ -20,23 +20,33 @@ using Passbolt.Api;
 
 var options = new PassboltClientOptions
 {
-BaseUrl = new Uri("https://passbolt.example.com"),
-ApiVersion = "v2"
+    Uri = new Uri("https://passbolt.example.com"),
+    Username = "user@example.com",
+    Password = "password",
+    PrivateKeyBlock = "-----BEGIN PGP PRIVATE KEY BLOCK-----\n..."
 };
 
 using var client = new PassboltClient(options);
 
-var status = await client.GetServerStatusAsync();
-Console.WriteLine($"Passbolt status: {status.Status}");
+// Get server status
+var status = await client.Status.GetStatusAsync();
+Console.WriteLine($"Passbolt version: {status.Body?.Version}");
+
+// List all resources
+var resources = await client.Resources.GetResourcesAsync();
+foreach (var resource in resources.Body ?? [])
+{
+    Console.WriteLine($"Resource: {resource.Name} (ID: {resource.Id})");
+}
 ```
 
 ## Features
 
-- Typed API client abstraction via `IPassboltClient`
-- `System.Text.Json` serialization
-- Refit-backed API interface for HTTP endpoint mapping
-- DI-friendly constructor design
-- xUnit v3 + AwesomeAssertions test coverage
+- Strongly-typed `PassboltClient` for intuitive API access
+- Refit-backed REST API interface for seamless HTTP endpoint mapping
+- Built-in support for Passbolt's PGP authentication flow
+- Async/await support throughout
+- Dependency injection compatible design
 
 ## Quality
 
@@ -45,9 +55,13 @@ Console.WriteLine($"Passbolt status: {status.Status}");
 - XML documentation generated
 - CI validates restore, build, test, and package output
 
-## Known Issues
+## Supported Endpoints
 
-- This initial version ships a focused status endpoint only; additional domain endpoints will be added iteratively.
+- **Status**: Server status and healthcheck information
+- **Users**: Create, read, update, and list users
+- **Groups**: Create, read, update, and list groups  
+- **Resources**: Create, read, update, and list password resources
+- **Folders**: Create, read, update, and list folders
 
 ## Links
 
