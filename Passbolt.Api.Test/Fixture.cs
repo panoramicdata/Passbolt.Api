@@ -33,23 +33,27 @@ public sealed class Fixture : TestBedFixture
 
 	private void ApplyConfigurationOverrides(PassboltIntegrationSettings settings)
 	{
-		settings.ServerUrl = GetConfiguredValue("PASSBOLT__SERVERURL", "ServerUrl") ?? settings.ServerUrl;
-		settings.ApiVersion = GetConfiguredValue("PASSBOLT__APIVERSION", "ApiVersion") ?? settings.ApiVersion;
-		settings.AccessToken = GetConfiguredValue("PASSBOLT__ACCESSTOKEN", "AccessToken") ?? settings.AccessToken;
-		settings.Username = GetConfiguredValue("PASSBOLT__USERNAME", "Username") ?? settings.Username;
-		settings.Password = GetConfiguredValue("PASSBOLT__PASSWORD", "Password") ?? settings.Password;
-		settings.PrivateKeyBlock = GetConfiguredValue("PASSBOLT__PRIVATEKEYBLOCK", "PrivateKeyBlock") ?? settings.PrivateKeyBlock;
-		settings.KnownUserId = GetConfiguredValue("PASSBOLT__KNOWNUSERID", "KnownUserId") ?? settings.KnownUserId;
-		settings.KnownGroupId = GetConfiguredValue("PASSBOLT__KNOWNGROUPID", "KnownGroupId") ?? settings.KnownGroupId;
-		settings.KnownResourceId = GetConfiguredValue("PASSBOLT__KNOWNRESOURCEID", "KnownResourceId") ?? settings.KnownResourceId;
-		settings.ResourceLookupName = GetConfiguredValue("PASSBOLT__RESOURCELOOKUPNAME", "ResourceLookupName") ?? settings.ResourceLookupName;
-		settings.ResourceLookupUri = GetConfiguredValue("PASSBOLT__RESOURCELOOKUPURI", "ResourceLookupUri") ?? settings.ResourceLookupUri;
-		settings.ResourceLookupUsername = GetConfiguredValue("PASSBOLT__RESOURCELOOKUPUSERNAME", "ResourceLookupUsername") ?? settings.ResourceLookupUsername;
+		settings.ServerUrl = ApplyOverride(settings.ServerUrl, "PASSBOLT__SERVERURL", "ServerUrl");
+		settings.ApiVersion = ApplyOverride(settings.ApiVersion, "PASSBOLT__APIVERSION", "ApiVersion");
+		settings.AccessToken = ApplyOverride(settings.AccessToken, "PASSBOLT__ACCESSTOKEN", "AccessToken");
+		settings.Username = ApplyOverride(settings.Username, "PASSBOLT__USERNAME", "Username");
+		settings.Password = ApplyOverride(settings.Password, "PASSBOLT__PASSWORD", "Password");
+		settings.PrivateKeyBlock = ApplyOverride(settings.PrivateKeyBlock, "PASSBOLT__PRIVATEKEYBLOCK", "PrivateKeyBlock");
+		settings.KnownUserId = ApplyOverride(settings.KnownUserId, "PASSBOLT__KNOWNUSERID", "KnownUserId");
+		settings.KnownGroupId = ApplyOverride(settings.KnownGroupId, "PASSBOLT__KNOWNGROUPID", "KnownGroupId");
+		settings.KnownResourceId = ApplyOverride(settings.KnownResourceId, "PASSBOLT__KNOWNRESOURCEID", "KnownResourceId");
+		settings.ResourceLookupName = ApplyOverride(settings.ResourceLookupName, "PASSBOLT__RESOURCELOOKUPNAME", "ResourceLookupName");
+		settings.ResourceLookupUri = ApplyOverride(settings.ResourceLookupUri, "PASSBOLT__RESOURCELOOKUPURI", "ResourceLookupUri");
+		settings.ResourceLookupUsername = ApplyOverride(settings.ResourceLookupUsername, "PASSBOLT__RESOURCELOOKUPUSERNAME", "ResourceLookupUsername");
+
 		if (bool.TryParse(GetConfiguredValue("PASSBOLT__RUNMUTATINGINTEGRATIONTESTS", "RunMutatingIntegrationTests"), out var runMutating))
 		{
 			settings.RunMutatingIntegrationTests = runMutating;
 		}
 	}
+
+	private string? ApplyOverride(string? currentValue, string envKey, string logicalKey)
+		=> GetConfiguredValue(envKey, logicalKey) ?? currentValue;
 
     /// <inheritdoc />
 	protected override ValueTask DisposeAsyncCore() => default;

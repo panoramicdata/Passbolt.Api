@@ -106,8 +106,8 @@ public sealed class PassboltClientOptionsUnitTests
 			// Mock logger for testing - no-op implementation
 		}
 
-		public bool IsEnabled(LogLevel logLevel) => false;
+		public bool IsEnabled(LogLevel _) => false;
 
-		public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
+		public IDisposable? BeginScope<TState>(TState _) where TState : notnull => null;
 	}
 }
