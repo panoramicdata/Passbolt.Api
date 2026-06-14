@@ -17,14 +17,14 @@ public sealed class PassboltClientOptionsUnitTests
 			Uri = new Uri("https://example.com"),
 			Username = "user@example.com",
 			Password = "password",
-			PrivateKeyBlock = "-----BEGIN PGP PRIVATE KEY BLOCK-----"
+			PrivateKeyBlock = "[PGP PRIVATE KEY BLOCK - Export from Passbolt: Menu > My Account > Security > Download private key]"
 		};
 
 		// Assert
 		options.Uri.Should().Be(new Uri("https://example.com"));
 		options.Username.Should().Be("user@example.com");
 		options.Password.Should().Be("password");
-		options.PrivateKeyBlock.Should().StartWith("-----BEGIN PGP");
+		options.PrivateKeyBlock.Should().StartWith("[PGP PRIVATE KEY BLOCK");
 		options.Timeout.Should().Be(TimeSpan.FromSeconds(30));
 		options.Logger.Should().NotBeNull();
 		options.HttpClient.Should().BeNull();
@@ -101,7 +101,10 @@ public sealed class PassboltClientOptionsUnitTests
 
 	private sealed class TestLogger : ILogger
 	{
-		public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter) { }
+		public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
+		{
+			// Mock logger for testing - no-op implementation
+		}
 
 		public bool IsEnabled(LogLevel logLevel) => false;
 

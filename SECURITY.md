@@ -8,7 +8,7 @@ Only the latest release is supported with security updates.
 
 Do not report security issues in public GitHub issues.
 
-Please email security@panoramicdata.com with:
+Please email [security contact address] with:
 
 - A clear description of the vulnerability
 - Steps to reproduce

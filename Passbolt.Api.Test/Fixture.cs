@@ -28,25 +28,27 @@ public sealed class Fixture : TestBedFixture
 		services
 			.AddScoped<CancellationTokenSource>()
 			.Configure<PassboltIntegrationSettings>(_configuration.GetSection("Passbolt"))
-			.PostConfigure<PassboltIntegrationSettings>(settings =>
-			{
-				settings.ServerUrl = GetConfiguredValue("PASSBOLT__SERVERURL", "ServerUrl") ?? settings.ServerUrl;
-				settings.ApiVersion = GetConfiguredValue("PASSBOLT__APIVERSION", "ApiVersion") ?? settings.ApiVersion;
-				settings.AccessToken = GetConfiguredValue("PASSBOLT__ACCESSTOKEN", "AccessToken") ?? settings.AccessToken;
-				settings.Username = GetConfiguredValue("PASSBOLT__USERNAME", "Username") ?? settings.Username;
-				settings.Password = GetConfiguredValue("PASSBOLT__PASSWORD", "Password") ?? settings.Password;
-				settings.PrivateKeyBlock = GetConfiguredValue("PASSBOLT__PRIVATEKEYBLOCK", "PrivateKeyBlock") ?? settings.PrivateKeyBlock;
-				settings.KnownUserId = GetConfiguredValue("PASSBOLT__KNOWNUSERID", "KnownUserId") ?? settings.KnownUserId;
-				settings.KnownGroupId = GetConfiguredValue("PASSBOLT__KNOWNGROUPID", "KnownGroupId") ?? settings.KnownGroupId;
-				settings.KnownResourceId = GetConfiguredValue("PASSBOLT__KNOWNRESOURCEID", "KnownResourceId") ?? settings.KnownResourceId;
-				settings.ResourceLookupName = GetConfiguredValue("PASSBOLT__RESOURCELOOKUPNAME", "ResourceLookupName") ?? settings.ResourceLookupName;
-				settings.ResourceLookupUri = GetConfiguredValue("PASSBOLT__RESOURCELOOKUPURI", "ResourceLookupUri") ?? settings.ResourceLookupUri;
-				settings.ResourceLookupUsername = GetConfiguredValue("PASSBOLT__RESOURCELOOKUPUSERNAME", "ResourceLookupUsername") ?? settings.ResourceLookupUsername;
-				if (bool.TryParse(GetConfiguredValue("PASSBOLT__RUNMUTATINGINTEGRATIONTESTS", "RunMutatingIntegrationTests"), out var runMutating))
-				{
-					settings.RunMutatingIntegrationTests = runMutating;
-				}
-			});
+			.PostConfigure<PassboltIntegrationSettings>(ApplyConfigurationOverrides);
+	}
+
+	private void ApplyConfigurationOverrides(PassboltIntegrationSettings settings)
+	{
+		settings.ServerUrl = GetConfiguredValue("PASSBOLT__SERVERURL", "ServerUrl") ?? settings.ServerUrl;
+		settings.ApiVersion = GetConfiguredValue("PASSBOLT__APIVERSION", "ApiVersion") ?? settings.ApiVersion;
+		settings.AccessToken = GetConfiguredValue("PASSBOLT__ACCESSTOKEN", "AccessToken") ?? settings.AccessToken;
+		settings.Username = GetConfiguredValue("PASSBOLT__USERNAME", "Username") ?? settings.Username;
+		settings.Password = GetConfiguredValue("PASSBOLT__PASSWORD", "Password") ?? settings.Password;
+		settings.PrivateKeyBlock = GetConfiguredValue("PASSBOLT__PRIVATEKEYBLOCK", "PrivateKeyBlock") ?? settings.PrivateKeyBlock;
+		settings.KnownUserId = GetConfiguredValue("PASSBOLT__KNOWNUSERID", "KnownUserId") ?? settings.KnownUserId;
+		settings.KnownGroupId = GetConfiguredValue("PASSBOLT__KNOWNGROUPID", "KnownGroupId") ?? settings.KnownGroupId;
+		settings.KnownResourceId = GetConfiguredValue("PASSBOLT__KNOWNRESOURCEID", "KnownResourceId") ?? settings.KnownResourceId;
+		settings.ResourceLookupName = GetConfiguredValue("PASSBOLT__RESOURCELOOKUPNAME", "ResourceLookupName") ?? settings.ResourceLookupName;
+		settings.ResourceLookupUri = GetConfiguredValue("PASSBOLT__RESOURCELOOKUPURI", "ResourceLookupUri") ?? settings.ResourceLookupUri;
+		settings.ResourceLookupUsername = GetConfiguredValue("PASSBOLT__RESOURCELOOKUPUSERNAME", "ResourceLookupUsername") ?? settings.ResourceLookupUsername;
+		if (bool.TryParse(GetConfiguredValue("PASSBOLT__RUNMUTATINGINTEGRATIONTESTS", "RunMutatingIntegrationTests"), out var runMutating))
+		{
+			settings.RunMutatingIntegrationTests = runMutating;
+		}
 	}
 
     /// <inheritdoc />

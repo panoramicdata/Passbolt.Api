@@ -28,7 +28,7 @@ public sealed class PassboltClientUnitTests
 			Uri = new Uri("https://example.com"),
 			Username = "user@example.com",
 			Password = "password",
-			PrivateKeyBlock = "-----BEGIN PGP PRIVATE KEY BLOCK-----",
+			PrivateKeyBlock = "[PGP PRIVATE KEY BLOCK - Export from Passbolt: Menu > My Account > Security > Download private key]",
 			HttpClient = httpClient
 		};
 
@@ -48,7 +48,7 @@ public sealed class PassboltClientUnitTests
 			Uri = new Uri("https://example.com"),
 			Username = "user@example.com",
 			Password = "password",
-			PrivateKeyBlock = "-----BEGIN PGP PRIVATE KEY BLOCK-----"
+			PrivateKeyBlock = "[PGP PRIVATE KEY BLOCK - Export from Passbolt: Menu > My Account > Security > Download private key]"
 		};
 
 		// Assert
@@ -67,7 +67,7 @@ public sealed class PassboltClientUnitTests
 			Uri = new Uri("https://example.com"),
 			Username = "user@example.com",
 			Password = "password",
-			PrivateKeyBlock = "-----BEGIN PGP PRIVATE KEY BLOCK-----"
+			PrivateKeyBlock = "[PGP PRIVATE KEY BLOCK - Export from Passbolt: Menu > My Account > Security > Download private key]"
 		};
 
 		// Assert

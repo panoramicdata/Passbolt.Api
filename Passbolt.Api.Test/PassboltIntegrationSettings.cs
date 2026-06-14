@@ -79,14 +79,26 @@ public sealed class PassboltIntegrationSettings
 		&& !string.IsNullOrWhiteSpace(PrivateKeyBlock);
 
 	/// <summary>
-	/// Creates a configured Passbolt client.
+	/// Creates a configured Passbolt client with default logger.
 	/// </summary>
-	public PassboltClient CreateClient(ILogger? logger = null) => new(new PassboltClientOptions
+	public PassboltClient CreateClient() => new(new PassboltClientOptions
 	{
 		Uri = new Uri(ServerUrl),
 		Username = Username!,
 		Password = Password!,
 		PrivateKeyBlock = PrivateKeyBlock!,
-		Logger = logger ?? NullLogger<PassboltClient>.Instance
+		Logger = NullLogger<PassboltClient>.Instance
+	});
+
+	/// <summary>
+	/// Creates a configured Passbolt client with a custom logger.
+	/// </summary>
+	public PassboltClient CreateClient(ILogger logger) => new(new PassboltClientOptions
+	{
+		Uri = new Uri(ServerUrl),
+		Username = Username!,
+		Password = Password!,
+		PrivateKeyBlock = PrivateKeyBlock!,
+		Logger = logger
 	});
 }

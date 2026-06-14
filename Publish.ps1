@@ -48,8 +48,8 @@ Write-Error "Tag '$version' already exists."
 exit 1
 }
 
-Write-Host "Tagging as $version ..." -ForegroundColor Cyan
+Write-Information "Tagging as $version ..." -InformationAction Continue
 git tag $version
 git push origin $version
 
-Write-Host "Published tag $version. CI will build and publish the package." -ForegroundColor Green
+Write-Information "Published tag $version. CI will build and publish the package." -InformationAction Continue

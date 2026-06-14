@@ -282,15 +282,40 @@ internal sealed class AuthenticatedLoggingHttpHandler : HttpClientHandler
 
 	private static string DecryptAuthToken(string armoredMessage, string privateKeyArmored, string password)
 	{
+		var encryptedDataList = GetEncryptedDataList(armoredMessage);
+		var bundle = GetSecretKeyBundle(privateKeyArmored);
+		var clearStream = GetDecryptedStream(encryptedDataList, bundle, password);
+
+		using (clearStream)
+		{
+			return ExtractDecryptedMessage(clearStream);
+		}
+	}
+
+	private static Org.BouncyCastle.Bcpg.OpenPgp.PgpEncryptedDataList GetEncryptedDataList(string armoredMessage)
+	{
 		using var encryptedInput = new MemoryStream(Encoding.UTF8.GetBytes(armoredMessage));
 		using var decoderStream = Org.BouncyCastle.Bcpg.OpenPgp.PgpUtilities.GetDecoderStream(encryptedInput);
 
 		var factory = new Org.BouncyCastle.Bcpg.OpenPgp.PgpObjectFactory(decoderStream);
 		var first = factory.NextPgpObject();
-		var encryptedDataList = first as Org.BouncyCastle.Bcpg.OpenPgp.PgpEncryptedDataList
+		return first as Org.BouncyCastle.Bcpg.OpenPgp.PgpEncryptedDataList
 			?? factory.NextPgpObject() as Org.BouncyCastle.Bcpg.OpenPgp.PgpEncryptedDataList
 			?? throw new InvalidOperationException("Failed to parse encrypted Passbolt auth token.");
+	}
 
+	private static Org.BouncyCastle.Bcpg.OpenPgp.PgpSecretKeyRingBundle GetSecretKeyBundle(string privateKeyArmored)
+	{
+		using var keyStream = new MemoryStream(Encoding.UTF8.GetBytes(privateKeyArmored));
+		using var keyDecoderStream = Org.BouncyCastle.Bcpg.OpenPgp.PgpUtilities.GetDecoderStream(keyStream);
+		return new Org.BouncyCastle.Bcpg.OpenPgp.PgpSecretKeyRingBundle(keyDecoderStream);
+	}
+
+	private static Stream GetDecryptedStream(
+		Org.BouncyCastle.Bcpg.OpenPgp.PgpEncryptedDataList encryptedDataList,
+		Org.BouncyCastle.Bcpg.OpenPgp.PgpSecretKeyRingBundle bundle,
+		string password)
+	{
 		var publicKeyEncryptedDataPackets = encryptedDataList
 			.GetEncryptedDataObjects()
 			.OfType<Org.BouncyCastle.Bcpg.OpenPgp.PgpPublicKeyEncryptedData>()
@@ -301,16 +326,27 @@ internal sealed class AuthenticatedLoggingHttpHandler : HttpClientHandler
 			throw new InvalidOperationException("No encrypted data payload found in Passbolt auth token.");
 		}
 
-		using var keyStream = new MemoryStream(Encoding.UTF8.GetBytes(privateKeyArmored));
-		using var keyDecoderStream = Org.BouncyCastle.Bcpg.OpenPgp.PgpUtilities.GetDecoderStream(keyStream);
-		var bundle = new Org.BouncyCastle.Bcpg.OpenPgp.PgpSecretKeyRingBundle(keyDecoderStream);
-
-		var clearStream = TryGetDecryptedDataStream(publicKeyEncryptedDataPackets, bundle, password)
+		return TryGetDecryptedDataStream(publicKeyEncryptedDataPackets, bundle, password)
 			?? throw new InvalidOperationException("Unable to decrypt Passbolt auth token with the configured private key.");
+	}
 
-		using (clearStream)
-		{
+	private static string ExtractDecryptedMessage(Stream clearStream)
+	{
 		var plainFactory = new Org.BouncyCastle.Bcpg.OpenPgp.PgpObjectFactory(clearStream);
+		var plainObject = ExtractPlainObject(plainFactory);
+
+		if (plainObject is not Org.BouncyCastle.Bcpg.OpenPgp.PgpLiteralData literalData)
+		{
+			throw new InvalidOperationException("Passbolt auth token did not contain a literal data packet.");
+		}
+
+		using var literalStream = literalData.GetInputStream();
+		using var reader = new StreamReader(literalStream, Encoding.UTF8);
+		return reader.ReadToEnd();
+	}
+
+	private static object? ExtractPlainObject(Org.BouncyCastle.Bcpg.OpenPgp.PgpObjectFactory plainFactory)
+	{
 		var plainObject = plainFactory.NextPgpObject();
 
 		if (plainObject is Org.BouncyCastle.Bcpg.OpenPgp.PgpCompressedData compressedData)
@@ -334,15 +370,7 @@ internal sealed class AuthenticatedLoggingHttpHandler : HttpClientHandler
 			throw new InvalidOperationException($"Passbolt auth token contained unsupported PGP payload type {plainObject.GetType().Name}.");
 		}
 
-		if (plainObject is not Org.BouncyCastle.Bcpg.OpenPgp.PgpLiteralData literalData)
-		{
-			throw new InvalidOperationException("Passbolt auth token did not contain a literal data packet.");
-		}
-
-		using var literalStream = literalData.GetInputStream();
-		using var reader = new StreamReader(literalStream, Encoding.UTF8);
-		return reader.ReadToEnd();
-		}
+		return plainObject;
 	}
 
 	private static Stream? TryGetDecryptedDataStream(
