@@ -38,5 +38,5 @@ public sealed class PassboltClientOptions
 	/// <summary>
 	/// Optional <see cref="HttpClient"/> instance to use for API calls. If not provided, a new instance will be created internally.
 	/// </summary>
-	public HttpClient? HttpClient { get; internal set; }
+	public HttpClient? HttpClient { get; set; }
 }
