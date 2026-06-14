@@ -8,7 +8,7 @@ public interface IPassboltPermissionsApi
 	/// <summary>
 	/// Lists all permissions.
 	/// </summary>
-	/// <param name="cancellationToken">Cancellation token.</param>
+	/// <param name="cancellationToken">Cancellation token for the operation.</param>
 	/// <returns>A response containing a collection of permissions.</returns>
 	[Get("/permissions.json")]
 	Task<Response<IReadOnlyList<Permission>>> GetAllAsync(
@@ -18,7 +18,7 @@ public interface IPassboltPermissionsApi
 	/// Gets a specific permission by its ID.
 	/// </summary>
 	/// <param name="permissionId">The ID of the permission.</param>
-	/// <param name="cancellationToken">Cancellation token.</param>
+	/// <param name="cancellationToken">Cancellation token for the operation.</param>
 	/// <returns>A response containing the permission.</returns>
 	[Get("/permissions/{permissionId}.json")]
 	Task<Response<Permission>> GetAsync(
@@ -29,7 +29,7 @@ public interface IPassboltPermissionsApi
 	/// Lists all permissions for a specific resource.
 	/// </summary>
 	/// <param name="resourceId">The ID of the resource.</param>
-	/// <param name="cancellationToken">Cancellation token.</param>
+	/// <param name="cancellationToken">Cancellation token for the operation.</param>
 	/// <returns>A response containing a collection of permissions for the resource.</returns>
 	[Get("/permissions?filter[resource_id]={resourceId}")]
 	Task<Response<IReadOnlyList<Permission>>> GetByResourceAsync(
@@ -40,7 +40,7 @@ public interface IPassboltPermissionsApi
 	/// Lists all permissions for a specific user.
 	/// </summary>
 	/// <param name="userId">The ID of the user.</param>
-	/// <param name="cancellationToken">Cancellation token.</param>
+	/// <param name="cancellationToken">Cancellation token for the operation.</param>
 	/// <returns>A response containing a collection of permissions for the user.</returns>
 	[Get("/permissions?filter[user_id]={userId}")]
 	Task<Response<IReadOnlyList<Permission>>> GetByUserAsync(

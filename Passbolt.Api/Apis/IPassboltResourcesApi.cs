@@ -8,8 +8,8 @@ public interface IPassboltResourcesApi
 	/// <summary>
 	/// Lists all resources in Passbolt.
 	/// </summary>
-	/// <param name="cancellationToken"></param>
-	/// <returns></returns>
+	/// <param name="cancellationToken">Cancellation token for the operation.</param>
+	/// <returns>A task containing the list of resources.</returns>
 	[Get("/resources.json")]
 	Task<Response<IReadOnlyList<Resource>>> GetAllAsync(
 		CancellationToken cancellationToken);
@@ -17,9 +17,9 @@ public interface IPassboltResourcesApi
 	/// <summary>
 	/// Gets a specific resource by its ID.
 	/// </summary>
-	/// <param name="resourceId"></param>
-	/// <param name="cancellationToken"></param>
-	/// <returns></returns>
+	/// <param name="resourceId">The ID of the resource to retrieve.</param>
+	/// <param name="cancellationToken">Cancellation token for the operation.</param>
+	/// <returns>A task containing the resource.</returns>
 	[Get("/resources/{resourceId}.json")]
 	Task<Response<Resource>> GetAsync(
 		string resourceId,
@@ -28,20 +28,20 @@ public interface IPassboltResourcesApi
 	/// <summary>
 	/// Gets a specific resource by its name.
 	/// </summary>
-	/// <param name="name"></param>
-	/// <param name="cancellationToken"></param>
-	/// <returns></returns>
+	/// <param name="name">The name of the resource to retrieve.</param>
+	/// <param name="cancellationToken">Cancellation token for the operation.</param>
+	/// <returns>A task containing the list of matching resources.</returns>
 	[Get("/resources/byName/{name}.json")]
 	Task<Response<IReadOnlyList<Resource>>> GetByNameAsync(
 		string name,
 		CancellationToken cancellationToken);
 
 	/// <summary>
-	/// Gets a specific resource by its Url.
+	/// Gets a specific resource by its URI.
 	/// </summary>
-	/// <param name="uri"></param>
-	/// <param name="cancellationToken"></param>
-	/// <returns></returns>
+	/// <param name="uri">The URI of the resource to retrieve.</param>
+	/// <param name="cancellationToken">Cancellation token for the operation.</param>
+	/// <returns>A task containing the list of matching resources.</returns>
 	[Get("/resources/byUri/{uri}.json")]
 	Task<Response<IReadOnlyList<Resource>>> GetByUriAsync(
 		string uri,
@@ -50,9 +50,9 @@ public interface IPassboltResourcesApi
 	/// <summary>
 	/// Creates a new resource in Passbolt.
 	/// </summary>
-	/// <param name="request"></param>
-	/// <param name="cancellationToken"></param>
-	/// <returns></returns>
+	/// <param name="request">The resource creation request.</param>
+	/// <param name="cancellationToken">Cancellation token for the operation.</param>
+	/// <returns>A task containing the created resource.</returns>
 	[Post("/resources.json")]
 	Task<Response<Resource>> CreateAsync(
 		[Body] CreateResourceRequest request,
@@ -61,10 +61,10 @@ public interface IPassboltResourcesApi
 	/// <summary>
 	/// Updates an existing resource in Passbolt.
 	/// </summary>
-	/// <param name="resourceId"></param>
-	/// <param name="request"></param>
-	/// <param name="cancellationToken"></param>
-	/// <returns></returns>
+	/// <param name="resourceId">The ID of the resource to update.</param>
+	/// <param name="request">The resource update request.</param>
+	/// <param name="cancellationToken">Cancellation token for the operation.</param>
+	/// <returns>A task containing the updated resource.</returns>
 	[Put("/resources/{resourceId}.json")]
 	Task<Response<Resource>> UpdateAsync(
 		string resourceId,
@@ -74,9 +74,9 @@ public interface IPassboltResourcesApi
 	/// <summary>
 	/// Deletes a resource in Passbolt.
 	/// </summary>
-	/// <param name="resourceId"></param>
-	/// <param name="cancellationToken"></param>
-	/// <returns></returns>
+	/// <param name="resourceId">The ID of the resource to delete.</param>
+	/// <param name="cancellationToken">Cancellation token for the operation.</param>
+	/// <returns>A task containing the deletion response.</returns>
 	[Delete("/resources/{resourceId}.json")]
 	Task<ApiResponse<string>> DeleteAsync(
 		string resourceId,
@@ -85,10 +85,10 @@ public interface IPassboltResourcesApi
 	/// <summary>
 	/// Shares a resource in Passbolt.
 	/// </summary>
-	/// <param name="resourceId"></param>
-	/// <param name="request"></param>
-	/// <param name="cancellationToken"></param>
-	/// <returns></returns>
+	/// <param name="resourceId">The ID of the resource to share.</param>
+	/// <param name="request">The resource sharing request.</param>
+	/// <param name="cancellationToken">Cancellation token for the operation.</param>
+	/// <returns>A task containing the shared resource.</returns>
 	[Post("/share/resource/{resourceId}.json")]
 	Task<Response<Resource>> ShareAsync(
 		string resourceId,

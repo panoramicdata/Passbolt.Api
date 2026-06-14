@@ -9,7 +9,7 @@ public interface IPassboltAvatarsApi
 	/// Gets the avatar for a specific user.
 	/// </summary>
 	/// <param name="userId">The ID of the user.</param>
-	/// <param name="cancellationToken">Cancellation token.</param>
+	/// <param name="cancellationToken">Cancellation token for the operation.</param>
 	/// <returns>A response containing the avatar data.</returns>
 	[Get("/avatars/{userId}.json")]
 	Task<Response<Avatar>> GetAsync(

@@ -29,15 +29,22 @@ var options = new PassboltClientOptions
 using var client = new PassboltClient(options);
 
 // Get server status
-var status = await client.Status.GetStatusAsync();
+var status = await client.Status.GetStatusAsync(CancellationToken.None);
 Console.WriteLine($"Passbolt version: {status.Body?.Version}");
 
 // List all resources
-var resources = await client.Resources.GetResourcesAsync();
+var resources = await client.Resources.GetAllAsync(CancellationToken.None);
 foreach (var resource in resources.Body ?? [])
 {
     Console.WriteLine($"Resource: {resource.Name} (ID: {resource.Id})");
 }
+```
+
+For production code, pass a real cancellation token:
+
+```csharp
+using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+var resources = await client.Resources.GetAllAsync(cts.Token);
 ```
 
 ## Features

@@ -9,7 +9,7 @@ public interface IPassboltCommentsApi
 	/// Lists all comments for a specific resource.
 	/// </summary>
 	/// <param name="resourceId">The ID of the resource to list comments for.</param>
-	/// <param name="cancellationToken">Cancellation token.</param>
+	/// <param name="cancellationToken">Cancellation token for the operation.</param>
 	/// <returns>A response containing a collection of comments.</returns>
 	[Get("/comments?filter[resource_id]={resourceId}")]
 	Task<Response<IReadOnlyList<Comment>>> GetByResourceAsync(
