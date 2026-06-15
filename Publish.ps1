@@ -30,7 +30,7 @@ exit 1
 # run for the computed version to be populated (a plain -getProperty evaluation
 # returns the static version.json value without the Git height).
 $project = Join-Path $PSScriptRoot 'Passbolt.Api/Passbolt.Api.csproj'
-$buildOutput = dotnet build $project -t:GetBuildVersion --getProperty:NuGetPackageVersion -nologo -v:quiet
+$buildOutput = dotnet build $project -t:GetBuildVersion --getProperty:NuGetPackageVersion -nologo -v:quiet -p:TreatWarningsAsErrors=false
 if ($LASTEXITCODE -ne 0) {
 Write-Error "Failed to determine version from Nerdbank.GitVersioning.`n$buildOutput"
 exit 1
