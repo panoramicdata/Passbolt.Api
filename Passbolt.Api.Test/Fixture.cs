@@ -33,8 +33,8 @@ public sealed class Fixture : TestBedFixture
 
 	private void ApplyConfigurationOverrides(PassboltIntegrationSettings settings)
 	{
-		settings.ServerUrl = ApplyOverride(settings.ServerUrl, "PASSBOLT__SERVERURL", "ServerUrl");
-		settings.ApiVersion = ApplyOverride(settings.ApiVersion, "PASSBOLT__APIVERSION", "ApiVersion");
+		settings.ServerUrl = ApplyOverride(settings.ServerUrl, "PASSBOLT__SERVERURL", "ServerUrl")!;
+		settings.ApiVersion = ApplyOverride(settings.ApiVersion, "PASSBOLT__APIVERSION", "ApiVersion")!;
 		settings.AccessToken = ApplyOverride(settings.AccessToken, "PASSBOLT__ACCESSTOKEN", "AccessToken");
 		settings.Username = ApplyOverride(settings.Username, "PASSBOLT__USERNAME", "Username");
 		settings.Password = ApplyOverride(settings.Password, "PASSBOLT__PASSWORD", "Password");
