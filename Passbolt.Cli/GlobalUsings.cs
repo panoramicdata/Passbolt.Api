@@ -1,0 +1,10 @@
+global using System.ComponentModel;
+global using System.Text.Json;
+global using System.Text.Json.Serialization;
+global using System.Text.Json.Serialization.Metadata;
+global using Passbolt.Api;
+global using Passbolt.Api.Data;
+global using Passbolt.Cli.Infrastructure;
+global using Passbolt.Cli.Settings;
+global using Spectre.Console;
+global using Spectre.Console.Cli;

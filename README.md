@@ -26,34 +26,76 @@ var options = new PassboltClientOptions
     PrivateKeyBlock = "-----BEGIN PGP PRIVATE KEY BLOCK-----\n..."
 };
 
+using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
 using var client = new PassboltClient(options);
 
 // Get server status
-var status = await client.Status.GetStatusAsync(CancellationToken.None);
-Console.WriteLine($"Passbolt version: {status.Body?.Version}");
+var status = await client.Status.GetStatusAsync(cts.Token);
+Console.WriteLine($"Passbolt status: {status.Status}");
 
 // List all resources
-var resources = await client.Resources.GetAllAsync(CancellationToken.None);
-foreach (var resource in resources.Body ?? [])
+var resources = await client.Resources.GetAllAsync(cts.Token);
+foreach (var resource in resources.Value)
 {
     Console.WriteLine($"Resource: {resource.Name} (ID: {resource.Id})");
 }
 ```
 
-For production code, pass a real cancellation token:
+> API responses are wrapped in a `Response<T>` envelope — the payload is on `.Value`, with metadata on `.Header`.
 
-```csharp
-using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
-var resources = await client.Resources.GetAllAsync(cts.Token);
+## Command-line tool (`Passbolt.Cli`)
+
+The same client also ships as a cross-platform command-line tool, installable as a .NET global tool:
+
+```shell
+dotnet tool install --global Passbolt.Cli
 ```
 
+This installs a `passbolt` command. Configure it once (the passphrase is never stored):
+
+```shell
+passbolt configure --server https://passbolt.example.com --username user@example.com --private-key-file ~/.passbolt/private.asc
+```
+
+Connection settings resolve in the order **option → environment variable → config file**, with the private key falling back to `~/.passbolt/private.asc`. Environment variables: `PASSBOLT_SERVER`, `PASSBOLT_USERNAME`, `PASSBOLT_PASSWORD`, `PASSBOLT_PRIVATE_KEY_FILE`.
+
+```shell
+# Server + identity
+passbolt status
+passbolt whoami
+
+# Browse (add --json to any command for machine-readable output)
+passbolt resource list
+passbolt resource get <id>
+passbolt user list
+passbolt group get <id>
+passbolt folder list
+passbolt permission list --resource <id>
+
+# Governance: flag resources with fewer than two owners or no group owner
+passbolt audit ownership
+passbolt audit ownership --min-owners 2 --json
+```
+
+Every command accepts `--server/-s`, `--username/-u`, `--password/-p`, `--private-key-file/-k`, `--config/-c` and `--json/-j`. In `--json` mode stdout carries only JSON (status text goes to stderr), so it pipes cleanly into `jq`.
+
 ## Features
+
+### Library
 
 - Strongly-typed `PassboltClient` for intuitive API access
 - Refit-backed REST API interface for seamless HTTP endpoint mapping
 - Built-in support for Passbolt's PGP authentication flow
 - Async/await support throughout
 - Dependency injection compatible design
+
+### CLI (`Passbolt.Cli`)
+
+- Installable as a .NET global tool (`passbolt`)
+- Cobra-style subcommands with rich help
+- Human-friendly tables **and** clean `--json` for scripting/`jq`
+- Config file + environment variables + per-command options
+- Ownership audit that flags under-owned resources — a governance view not offered by the reference Go CLI
 
 ## Quality
 
@@ -83,6 +125,13 @@ var resources = await client.Resources.GetAllAsync(cts.Token);
 - NuGet: https://www.nuget.org/packages/Passbolt.Api
 - GitHub: https://github.com/panoramicdata/Passbolt.Api
 - Issues: https://github.com/panoramicdata/Passbolt.Api/issues
+
+## Acknowledgements & related projects
+
+- [Passbolt](https://www.passbolt.com/) — the open-source password manager this client talks to. 💙
+- [`passbolt/go-passbolt`](https://github.com/passbolt/go-passbolt) and [`passbolt/go-passbolt-cli`](https://github.com/passbolt/go-passbolt-cli) — the excellent, mature Go SDK and CLI. They're the reference implementation we learned from, and remain the go-to for Go users. `Passbolt.Api`/`Passbolt.Cli` exist to give the .NET ecosystem a first-class, idiomatic option — with a bit of friendly cross-language rivalry. 🤝
+
+This project is community-built and is not an official Passbolt product. "Passbolt" is a trademark of its respective owner and is used here only to describe interoperability.
 
 ## License
 
