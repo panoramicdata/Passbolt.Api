@@ -70,12 +70,37 @@ passbolt resource get <id>
 passbolt user list
 passbolt group get <id>
 passbolt folder list
+passbolt role list
 passbolt permission list --resource <id>
+
+# Manage (non-secret writes)
+passbolt user create --email new@example.com --first-name Ada --last-name Lovelace
+passbolt user update <id> --last-name Byron
+passbolt group create --name "Engineering" --manager <user-id>
+passbolt group add-member <group-id> --user <user-id> --admin
+passbolt folder create --name "Shared" --parent <folder-id>
+passbolt resource update <id> --name "New name" --uri https://example.com
+passbolt resource delete <id> --yes
 
 # Governance: flag resources with fewer than two owners or no group owner
 passbolt audit ownership
 passbolt audit ownership --min-owners 2 --json
 ```
+
+### Command coverage
+
+| Area | Commands |
+|------|----------|
+| Server | `status`, `whoami`, `configure` |
+| Resources | `list`, `get`, `update` (metadata), `delete` |
+| Users | `list`, `get`, `create`, `update`, `delete` |
+| Groups | `list`, `get`, `create`, `add-member`, `delete` |
+| Folders | `list`, `get`, `create`, `update`, `delete` |
+| Roles | `list` |
+| Permissions | `list --resource\|--user` |
+| Audit | `ownership` |
+
+**Not yet supported:** creating a resource, rotating a resource's secret, and sharing (which re-encrypts the secret for new recipients) all require encrypting the secret to each recipient's PGP public key. That secret-encryption capability is being added to `Passbolt.Api` first — see [issue #31](https://github.com/panoramicdata/Passbolt.Api/issues/31).
 
 Every command accepts `--server/-s`, `--username/-u`, `--password/-p`, `--private-key-file/-k`, `--config/-c` and `--json/-j`. In `--json` mode stdout carries only JSON (status text goes to stderr), so it pipes cleanly into `jq`.
 

@@ -4,6 +4,7 @@ using Passbolt.Cli.Commands.Folders;
 using Passbolt.Cli.Commands.Groups;
 using Passbolt.Cli.Commands.Permissions;
 using Passbolt.Cli.Commands.Resources;
+using Passbolt.Cli.Commands.Roles;
 using Passbolt.Cli.Commands.Users;
 
 var app = new CommandApp();
@@ -21,31 +22,47 @@ app.Configure(config =>
 
 	config.AddBranch("resource", branch =>
 	{
-		branch.SetDescription("List, read and delete resources (passwords).");
+		branch.SetDescription("List, read, update and delete resources (passwords).");
 		branch.AddCommand<ListResourcesCommand>("list").WithDescription("List all resources.");
 		branch.AddCommand<GetResourceCommand>("get").WithDescription("Get a resource by id.");
+		branch.AddCommand<UpdateResourceCommand>("update").WithDescription("Update a resource's metadata (not its secret).");
 		branch.AddCommand<DeleteResourceCommand>("delete").WithDescription("Delete a resource by id.");
 	});
 
 	config.AddBranch("user", branch =>
 	{
-		branch.SetDescription("List and read users.");
+		branch.SetDescription("Manage users.");
 		branch.AddCommand<ListUsersCommand>("list").WithDescription("List all users.");
 		branch.AddCommand<GetUserCommand>("get").WithDescription("Get a user by id.");
+		branch.AddCommand<CreateUserCommand>("create").WithDescription("Create (invite) a user.");
+		branch.AddCommand<UpdateUserCommand>("update").WithDescription("Update a user's profile.");
+		branch.AddCommand<DeleteUserCommand>("delete").WithDescription("Delete a user by id.");
 	});
 
 	config.AddBranch("group", branch =>
 	{
-		branch.SetDescription("List and read groups.");
+		branch.SetDescription("Manage groups.");
 		branch.AddCommand<ListGroupsCommand>("list").WithDescription("List all groups.");
 		branch.AddCommand<GetGroupCommand>("get").WithDescription("Get a group by id.");
+		branch.AddCommand<CreateGroupCommand>("create").WithDescription("Create a group with an initial manager.");
+		branch.AddCommand<AddGroupMemberCommand>("add-member").WithDescription("Add a member to a group.");
+		branch.AddCommand<DeleteGroupCommand>("delete").WithDescription("Delete a group by id.");
 	});
 
 	config.AddBranch("folder", branch =>
 	{
-		branch.SetDescription("List and read folders.");
+		branch.SetDescription("Manage folders.");
 		branch.AddCommand<ListFoldersCommand>("list").WithDescription("List all folders.");
 		branch.AddCommand<GetFolderCommand>("get").WithDescription("Get a folder by id.");
+		branch.AddCommand<CreateFolderCommand>("create").WithDescription("Create a folder.");
+		branch.AddCommand<UpdateFolderCommand>("update").WithDescription("Update a folder's name/description.");
+		branch.AddCommand<DeleteFolderCommand>("delete").WithDescription("Delete a folder by id.");
+	});
+
+	config.AddBranch("role", branch =>
+	{
+		branch.SetDescription("List roles.");
+		branch.AddCommand<ListRolesCommand>("list").WithDescription("List available roles.");
 	});
 
 	config.AddBranch("permission", branch =>
