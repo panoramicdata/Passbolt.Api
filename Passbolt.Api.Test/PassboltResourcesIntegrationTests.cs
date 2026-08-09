@@ -54,38 +54,50 @@ public sealed class PassboltResourcesIntegrationTests(ITestOutputHelper testOutp
 		var parentFolderId = await EnsureTestFolderExistsAsync();
 		var sharedGroupId = await EnsureTestGroupExistsAsync();
 
-		var created = await Client.Resources.CreateAsync(new Requests.CreateResourceRequest
-		{
-			Name = $"Passbolt.Api Integration Resource {Guid.NewGuid():N}",
-			Username = Settings.ResourceLookupUsername ?? "integration.user",
-			Uri = $"https://integration-{Guid.NewGuid():N}.example",
-			Secret = $"Secret-{Guid.NewGuid():N}",
-			Description = "Passbolt.Api integration test resource",
-			ParentFolderId = parentFolderId
-		}, CancellationToken);
+		var originalSecret = $"Secret-{Guid.NewGuid():N}";
 
-		var createdResourceId = created.Value.Id;
+		// Create with client-side PGP encryption (password-and-description type).
+		var created = await Client.CreateResourceAsync(
+			name: $"Passbolt.Api Integration Resource {Guid.NewGuid():N}",
+			username: Settings.ResourceLookupUsername ?? "integration.user",
+			uri: $"https://integration-{Guid.NewGuid():N}.example",
+			password: originalSecret,
+			description: "Passbolt.Api integration test resource",
+			folderParentId: parentFolderId,
+			encryptDescription: true,
+			CancellationToken);
+
+		var createdResourceId = created.Id;
 		createdResourceId.Should().NotBeNullOrWhiteSpace();
 
 		try
 		{
-			await Client.Resources.UpdateAsync(createdResourceId!, new Requests.UpdateResourceRequest
-			{
-				Name = $"Passbolt.Api Integration Resource Updated {Guid.NewGuid():N}",
-				Description = "Updated by integration tests"
-			}, CancellationToken);
+			// Read the secret back and confirm it decrypts to what we encrypted.
+			var afterCreate = (await Client.Secrets.GetForResourceAsync(createdResourceId!, CancellationToken)).Value;
+			var decryptedAfterCreate = Cryptography.PassboltPgp.Decrypt(afterCreate.Data!, Settings.PrivateKeyBlock!, Settings.Password!);
+			decryptedAfterCreate.Should().Contain(originalSecret);
 
-			await Client.Resources.ShareAsync(createdResourceId!, new Requests.ShareResourceRequest
-			{
-				Permissions =
-				[
-					new Requests.SharePermissionRequest
-					{
-						GroupId = sharedGroupId,
-						Type = 1
-					}
-				]
-			}, CancellationToken);
+			// Rotate the secret and confirm the new value round-trips.
+			var rotatedSecret = $"Secret-{Guid.NewGuid():N}";
+			await Client.RotateResourceSecretAsync(createdResourceId!, rotatedSecret, description: null, CancellationToken);
+			var afterRotate = (await Client.Secrets.GetForResourceAsync(createdResourceId!, CancellationToken)).Value;
+			var decryptedAfterRotate = Cryptography.PassboltPgp.Decrypt(afterRotate.Data!, Settings.PrivateKeyBlock!, Settings.Password!);
+			decryptedAfterRotate.Should().Contain(rotatedSecret);
+			decryptedAfterRotate.Should().NotContain(originalSecret);
+
+			// Share with a group; recipients' secrets are re-encrypted automatically.
+			await Client.ShareResourceAsync(createdResourceId!,
+			[
+				new Requests.SharePermissionRequest
+				{
+					IsNew = true,
+					Aro = "Group",
+					AroForeignKey = sharedGroupId,
+					Aco = "Resource",
+					AcoForeignKey = createdResourceId,
+					Type = 1
+				}
+			], CancellationToken);
 		}
 		finally
 		{

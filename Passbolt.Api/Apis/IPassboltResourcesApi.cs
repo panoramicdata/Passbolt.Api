@@ -83,13 +83,27 @@ public interface IPassboltResourcesApi
 		CancellationToken cancellationToken);
 
 	/// <summary>
+	/// Simulates sharing a resource, returning which recipients would gain or lose access without
+	/// applying any change. Used to determine whose secrets must be supplied to the real share call.
+	/// </summary>
+	/// <param name="resourceId">The ID of the resource to simulate sharing.</param>
+	/// <param name="request">The desired permission changes.</param>
+	/// <param name="cancellationToken">Cancellation token for the operation.</param>
+	/// <returns>A task containing the simulated recipient changes.</returns>
+	[Post("/share/simulate/resource/{resourceId}.json")]
+	Task<Response<ShareSimulationResult>> SimulateShareAsync(
+		string resourceId,
+		[Body] ShareResourceRequest request,
+		CancellationToken cancellationToken);
+
+	/// <summary>
 	/// Shares a resource in Passbolt.
 	/// </summary>
 	/// <param name="resourceId">The ID of the resource to share.</param>
 	/// <param name="request">The resource sharing request.</param>
 	/// <param name="cancellationToken">Cancellation token for the operation.</param>
 	/// <returns>A task containing the shared resource.</returns>
-	[Post("/share/resource/{resourceId}.json")]
+	[Put("/share/resource/{resourceId}.json")]
 	Task<Response<Resource>> ShareAsync(
 		string resourceId,
 		[Body] ShareResourceRequest request,

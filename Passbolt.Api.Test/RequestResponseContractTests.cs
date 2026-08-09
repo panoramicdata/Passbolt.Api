@@ -53,13 +53,14 @@ public sealed class RequestResponseContractTests
 		var request = new CreateResourceRequest
 		{
 			Name = "My Password",
-			Secret = "password123",
-			Username = "user@example.com"
+			ResourceTypeId = "rt-1",
+			Username = "user@example.com",
+			Secrets = [new SecretRequest { Data = "-----BEGIN PGP MESSAGE-----" }]
 		};
 
 		// Assert
 		request.Name.Should().Be("My Password");
-		request.Secret.Should().Be("password123");
+		request.Secrets.Should().ContainSingle();
 		request.Username.Should().Be("user@example.com");
 	}
 
@@ -73,12 +74,12 @@ public sealed class RequestResponseContractTests
 		var request = new UpdateResourceRequest
 		{
 			Name = "Updated",
-			Secret = "newpass"
+			Secrets = [new SecretRequest { UserId = "user-1", Data = "-----BEGIN PGP MESSAGE-----" }]
 		};
 
 		// Assert
 		request.Name.Should().Be("Updated");
-		request.Secret.Should().Be("newpass");
+		request.Secrets.Should().ContainSingle();
 	}
 
 	/// <summary>
@@ -90,8 +91,8 @@ public sealed class RequestResponseContractTests
 		// Arrange
 		var permissions = new List<SharePermissionRequest>
 		{
-			new() { UserId = "user-1", Type = 7 },
-			new() { UserId = "user-2", Type = 1 }
+			new() { IsNew = true, Aro = "User", AroForeignKey = "user-1", Aco = "Resource", AcoForeignKey = "res-1", Type = 7 },
+			new() { IsNew = true, Aro = "User", AroForeignKey = "user-2", Aco = "Resource", AcoForeignKey = "res-1", Type = 1 }
 		};
 
 		// Act
@@ -161,10 +162,18 @@ public sealed class RequestResponseContractTests
 	public void SharePermissionRequest_Properties()
 	{
 		// Arrange & Act
-		var permission = new SharePermissionRequest { UserId = "user-1", Type = 7 };
+		var permission = new SharePermissionRequest
+		{
+			IsNew = true,
+			Aro = "User",
+			AroForeignKey = "user-1",
+			Aco = "Resource",
+			AcoForeignKey = "res-1",
+			Type = 7
+		};
 
 		// Assert
-		permission.UserId.Should().Be("user-1");
+		permission.AroForeignKey.Should().Be("user-1");
 		permission.Type.Should().Be(7);
 	}
 

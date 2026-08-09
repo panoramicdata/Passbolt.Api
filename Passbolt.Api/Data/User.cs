@@ -52,4 +52,11 @@ public sealed class User : IdentifiedItem
     /// </summary>
     [JsonPropertyName("profile")]
     public JsonElement? Profile { get; set; }
+
+    /// <summary>
+    /// The user's OpenPGP public key. Populated only when the request asks the server to
+    /// contain the gpgkey (for example when resolving recipients for secret encryption).
+    /// </summary>
+    [JsonPropertyName("gpgkey")]
+    public GpgKey? Gpgkey { get; set; }
 }

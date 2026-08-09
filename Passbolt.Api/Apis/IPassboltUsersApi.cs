@@ -15,6 +15,33 @@ public interface IPassboltUsersApi
 		CancellationToken cancellationToken);
 
 	/// <summary>
+	/// Lists all users including their OpenPGP public keys. Used when recipients' keys are
+	/// required to encrypt resource secrets.
+	/// </summary>
+	/// <param name="containGpgkey">Set to 1 to include each user's gpgkey.</param>
+	/// <param name="cancellationToken">Cancellation token for the operation.</param>
+	/// <returns>A task containing the list of users with gpgkeys.</returns>
+	[Get("/users.json")]
+	Task<Response<IReadOnlyList<User>>> GetAllWithGpgKeysAsync(
+		[AliasAs("contain[gpgkey]")] int containGpgkey,
+		CancellationToken cancellationToken);
+
+	/// <summary>
+	/// Lists the users who have access to a given resource (expanding group membership
+	/// server-side), including their OpenPGP public keys. This is the authoritative recipient
+	/// set for re-encrypting a shared secret.
+	/// </summary>
+	/// <param name="resourceId">The resource whose accessors to resolve.</param>
+	/// <param name="containGpgkey">Set to 1 to include each user's gpgkey.</param>
+	/// <param name="cancellationToken">Cancellation token for the operation.</param>
+	/// <returns>A task containing the users with access and their gpgkeys.</returns>
+	[Get("/users.json")]
+	Task<Response<IReadOnlyList<User>>> GetWithAccessToResourceAsync(
+		[AliasAs("filter[has-access][]")] string resourceId,
+		[AliasAs("contain[gpgkey]")] int containGpgkey,
+		CancellationToken cancellationToken);
+
+	/// <summary>
 	/// Gets a specific user by their ID.
 	/// </summary>
 	/// <param name="userId">The ID of the user to retrieve.</param>

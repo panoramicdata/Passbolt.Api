@@ -3,11 +3,12 @@ namespace Passbolt.Api;
 /// <summary>
 /// Represents a client for interacting with the Passbolt API.
 /// </summary>
-public sealed class PassboltClient : IDisposable
+public sealed partial class PassboltClient : IDisposable
 {
 	private readonly HttpClient _httpClient;
 	private readonly bool _ownsHttpClient;
 	private readonly AuthenticatedLoggingHttpHandler? _httpClientHandler;
+	private readonly PassboltClientOptions _options;
 	/// <summary>
 	/// Creates a client with internally managed <see cref="HttpClient"/>.
 	/// </summary>
@@ -19,6 +20,7 @@ public sealed class PassboltClient : IDisposable
 			throw new ArgumentNullException(nameof(options));
 		}
 
+		_options = options;
 		_ownsHttpClient = options.HttpClient is null;
 
 		if (_ownsHttpClient)
@@ -35,17 +37,33 @@ public sealed class PassboltClient : IDisposable
 			_httpClient = options.HttpClient!;
 		}
 
-		Avatars = RestService.For<IPassboltAvatarsApi>(_httpClient);
-		Comments = RestService.For<IPassboltCommentsApi>(_httpClient);
-		Folders = RestService.For<IPassboltFoldersApi>(_httpClient);
-		Groups = RestService.For<IPassboltGroupsApi>(_httpClient);
-		Me = RestService.For<IPassboltMeApi>(_httpClient);
-		Permissions = RestService.For<IPassboltPermissionsApi>(_httpClient);
-		Resources = RestService.For<IPassboltResourcesApi>(_httpClient);
-		Roles = RestService.For<IPassboltRolesApi>(_httpClient);
-		Status = RestService.For<IPassboltStatusApi>(_httpClient);
-		Users = RestService.For<IPassboltUsersApi>(_httpClient);
+		var refitSettings = new RefitSettings
+		{
+			ContentSerializer = new SystemTextJsonContentSerializer(RefitJsonOptions)
+		};
+
+		Avatars = RestService.For<IPassboltAvatarsApi>(_httpClient, refitSettings);
+		Comments = RestService.For<IPassboltCommentsApi>(_httpClient, refitSettings);
+		Folders = RestService.For<IPassboltFoldersApi>(_httpClient, refitSettings);
+		Groups = RestService.For<IPassboltGroupsApi>(_httpClient, refitSettings);
+		Me = RestService.For<IPassboltMeApi>(_httpClient, refitSettings);
+		Permissions = RestService.For<IPassboltPermissionsApi>(_httpClient, refitSettings);
+		Resources = RestService.For<IPassboltResourcesApi>(_httpClient, refitSettings);
+		ResourceTypes = RestService.For<IPassboltResourceTypesApi>(_httpClient, refitSettings);
+		Secrets = RestService.For<IPassboltSecretsApi>(_httpClient, refitSettings);
+		Roles = RestService.For<IPassboltRolesApi>(_httpClient, refitSettings);
+		Status = RestService.For<IPassboltStatusApi>(_httpClient, refitSettings);
+		Users = RestService.For<IPassboltUsersApi>(_httpClient, refitSettings);
 	}
+
+	// .NET 10 disables reflection-based serialization by default; an explicit resolver keeps Refit
+	// (de)serialization working regardless of the host application's reflection setting.
+	private static readonly JsonSerializerOptions RefitJsonOptions = new()
+	{
+		PropertyNameCaseInsensitive = true,
+		DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+		TypeInfoResolver = new DefaultJsonTypeInfoResolver(),
+	};
 
 	/// <summary>
 	/// Gets the API for accessing Passbolt server status and healthcheck endpoints.
@@ -66,6 +84,16 @@ public sealed class PassboltClient : IDisposable
 	/// Gets the API for accessing Passbolt resources endpoints.
 	/// </summary>
 	public IPassboltResourcesApi Resources { get; }
+
+	/// <summary>
+	/// Gets the API for accessing Passbolt resource-type endpoints.
+	/// </summary>
+	public IPassboltResourceTypesApi ResourceTypes { get; }
+
+	/// <summary>
+	/// Gets the API for reading the current user's resource secrets.
+	/// </summary>
+	public IPassboltSecretsApi Secrets { get; }
 
 	/// <summary>
 	/// Gets the API for accessing Passbolt folders endpoints.

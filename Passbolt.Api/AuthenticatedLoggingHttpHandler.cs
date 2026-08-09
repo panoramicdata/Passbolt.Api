@@ -46,6 +46,9 @@ internal sealed class AuthenticatedLoggingHttpHandler : HttpClientHandler
 	{
 		PropertyNameCaseInsensitive = true,
 		DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+		// .NET 10 disables reflection-based serialization by default; an explicit resolver keeps the
+		// client working regardless of the host application's reflection setting.
+		TypeInfoResolver = new DefaultJsonTypeInfoResolver(),
 	};
 
 	public AuthenticatedLoggingHttpHandler(PassboltClientOptions options)
