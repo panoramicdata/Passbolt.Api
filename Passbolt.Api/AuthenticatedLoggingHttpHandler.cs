@@ -282,26 +282,22 @@ internal sealed class AuthenticatedLoggingHttpHandler : HttpClientHandler
 
 	private static string DecryptAuthToken(string armoredMessage, string privateKeyArmored, string password)
 	{
-		var encryptedDataList = GetEncryptedDataList(armoredMessage);
-		var bundle = GetSecretKeyBundle(privateKeyArmored);
-		var clearStream = GetDecryptedStream(encryptedDataList, bundle, password);
-
-		using (clearStream)
-		{
-			return ExtractDecryptedMessage(clearStream);
-		}
-	}
-
-	private static Org.BouncyCastle.Bcpg.OpenPgp.PgpEncryptedDataList GetEncryptedDataList(string armoredMessage)
-	{
+		// PgpEncryptedDataList reads its ciphertext lazily from the underlying stream, so the input and
+		// decoder streams MUST remain open until decryption and literal extraction have completed.
+		// Previously the parsing lived in a helper whose `using` blocks disposed those streams on
+		// return, so the later GetDataStream call failed with "Cannot access a closed Stream" (surfaced
+		// as "Exception starting decryption"). Keep everything in one scope. See issue #32.
 		using var encryptedInput = new MemoryStream(Encoding.UTF8.GetBytes(armoredMessage));
 		using var decoderStream = Org.BouncyCastle.Bcpg.OpenPgp.PgpUtilities.GetDecoderStream(encryptedInput);
 
 		var factory = new Org.BouncyCastle.Bcpg.OpenPgp.PgpObjectFactory(decoderStream);
-		var first = factory.NextPgpObject();
-		return first as Org.BouncyCastle.Bcpg.OpenPgp.PgpEncryptedDataList
+		var encryptedDataList = factory.NextPgpObject() as Org.BouncyCastle.Bcpg.OpenPgp.PgpEncryptedDataList
 			?? factory.NextPgpObject() as Org.BouncyCastle.Bcpg.OpenPgp.PgpEncryptedDataList
 			?? throw new InvalidOperationException("Failed to parse encrypted Passbolt auth token.");
+
+		var bundle = GetSecretKeyBundle(privateKeyArmored);
+		using var clearStream = GetDecryptedStream(encryptedDataList, bundle, password);
+		return ExtractDecryptedMessage(clearStream);
 	}
 
 	private static Org.BouncyCastle.Bcpg.OpenPgp.PgpSecretKeyRingBundle GetSecretKeyBundle(string privateKeyArmored)
