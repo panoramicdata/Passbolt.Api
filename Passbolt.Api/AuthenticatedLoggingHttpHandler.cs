@@ -280,7 +280,8 @@ internal sealed class AuthenticatedLoggingHttpHandler : HttpClientHandler
 		}
 	}
 
-	private static string DecryptAuthToken(string armoredMessage, string privateKeyArmored, string password)
+	// internal (not private) so the GPGAuth decrypt path has a deterministic unit test (issue #32).
+	internal static string DecryptAuthToken(string armoredMessage, string privateKeyArmored, string password)
 	{
 		// PgpEncryptedDataList reads its ciphertext lazily from the underlying stream, so the input and
 		// decoder streams MUST remain open until decryption and literal extraction have completed.
@@ -329,44 +330,48 @@ internal sealed class AuthenticatedLoggingHttpHandler : HttpClientHandler
 	private static string ExtractDecryptedMessage(Stream clearStream)
 	{
 		var plainFactory = new Org.BouncyCastle.Bcpg.OpenPgp.PgpObjectFactory(clearStream);
-		var plainObject = ExtractPlainObject(plainFactory);
-
-		if (plainObject is not Org.BouncyCastle.Bcpg.OpenPgp.PgpLiteralData literalData)
-		{
-			throw new InvalidOperationException("Passbolt auth token did not contain a literal data packet.");
-		}
-
-		using var literalStream = literalData.GetInputStream();
-		using var reader = new StreamReader(literalStream, Encoding.UTF8);
-		return reader.ReadToEnd();
-	}
-
-	private static object? ExtractPlainObject(Org.BouncyCastle.Bcpg.OpenPgp.PgpObjectFactory plainFactory)
-	{
 		var plainObject = plainFactory.NextPgpObject();
 
-		if (plainObject is Org.BouncyCastle.Bcpg.OpenPgp.PgpCompressedData compressedData)
+		// If the message is compressed, the literal data packet is read lazily from the
+		// decompression stream, so it must stay open until the literal has been fully read
+		// (mirrors the ciphertext-stream lifetime fix for issue #32).
+		Stream? decompressedStream = null;
+		try
 		{
-			using var compressedStream = compressedData.GetDataStream();
-			plainFactory = new Org.BouncyCastle.Bcpg.OpenPgp.PgpObjectFactory(compressedStream);
-			plainObject = plainFactory.NextPgpObject();
-		}
-
-		while (plainObject is not null
-			&& plainObject is not Org.BouncyCastle.Bcpg.OpenPgp.PgpLiteralData)
-		{
-			if (plainObject is Org.BouncyCastle.Bcpg.OpenPgp.PgpOnePassSignatureList
-				|| plainObject is Org.BouncyCastle.Bcpg.OpenPgp.PgpSignatureList
-				|| plainObject is Org.BouncyCastle.Bcpg.OpenPgp.PgpMarker)
+			if (plainObject is Org.BouncyCastle.Bcpg.OpenPgp.PgpCompressedData compressedData)
 			{
+				decompressedStream = compressedData.GetDataStream();
+				plainFactory = new Org.BouncyCastle.Bcpg.OpenPgp.PgpObjectFactory(decompressedStream);
 				plainObject = plainFactory.NextPgpObject();
-				continue;
 			}
 
-			throw new InvalidOperationException($"Passbolt auth token contained unsupported PGP payload type {plainObject.GetType().Name}.");
-		}
+			while (plainObject is not null
+				&& plainObject is not Org.BouncyCastle.Bcpg.OpenPgp.PgpLiteralData)
+			{
+				if (plainObject is Org.BouncyCastle.Bcpg.OpenPgp.PgpOnePassSignatureList
+					|| plainObject is Org.BouncyCastle.Bcpg.OpenPgp.PgpSignatureList
+					|| plainObject is Org.BouncyCastle.Bcpg.OpenPgp.PgpMarker)
+				{
+					plainObject = plainFactory.NextPgpObject();
+					continue;
+				}
 
-		return plainObject;
+				throw new InvalidOperationException($"Passbolt auth token contained unsupported PGP payload type {plainObject.GetType().Name}.");
+			}
+
+			if (plainObject is not Org.BouncyCastle.Bcpg.OpenPgp.PgpLiteralData literalData)
+			{
+				throw new InvalidOperationException("Passbolt auth token did not contain a literal data packet.");
+			}
+
+			using var literalStream = literalData.GetInputStream();
+			using var reader = new StreamReader(literalStream, Encoding.UTF8);
+			return reader.ReadToEnd();
+		}
+		finally
+		{
+			decompressedStream?.Dispose();
+		}
 	}
 
 	private static Stream? TryGetDecryptedDataStream(

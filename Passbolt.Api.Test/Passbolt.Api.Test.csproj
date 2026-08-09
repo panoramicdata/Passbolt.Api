@@ -39,4 +39,11 @@
 <Content Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
 </ItemGroup>
 
+<ItemGroup>
+<!-- Throwaway PGP key + signed/encrypted message fixtures for the GPGAuth decrypt regression test (#32). Not secrets. -->
+<EmbeddedResource Include="Fixtures/GpgAuth/test-private.asc" />
+<EmbeddedResource Include="Fixtures/GpgAuth/test-message.asc" />
+<EmbeddedResource Include="Fixtures/GpgAuth/test-plaintext.txt" />
+</ItemGroup>
+
 </Project>

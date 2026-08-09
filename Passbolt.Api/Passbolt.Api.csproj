@@ -22,6 +22,10 @@
 </PropertyGroup>
 
 <ItemGroup>
+<InternalsVisibleTo Include="Passbolt.Api.Test" />
+</ItemGroup>
+
+<ItemGroup>
 <PackageReference Include="Nerdbank.GitVersioning" PrivateAssets="all" />
 <PackageReference Include="BouncyCastle.Cryptography" />
 <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
