@@ -22,10 +22,13 @@ app.Configure(config =>
 
 	config.AddBranch("resource", branch =>
 	{
-		branch.SetDescription("List, read, update and delete resources (passwords).");
+		branch.SetDescription("Create, read, update, rotate, share and delete resources (passwords).");
 		branch.AddCommand<ListResourcesCommand>("list").WithDescription("List all resources.");
 		branch.AddCommand<GetResourceCommand>("get").WithDescription("Get a resource by id.");
+		branch.AddCommand<CreateResourceCommand>("create").WithDescription("Create a resource (encrypts the secret client-side).");
 		branch.AddCommand<UpdateResourceCommand>("update").WithDescription("Update a resource's metadata (not its secret).");
+		branch.AddCommand<RotateResourceCommand>("rotate").WithDescription("Rotate a resource's secret (re-encrypts for all recipients).");
+		branch.AddCommand<ShareResourceCommand>("share").WithDescription("Grant or revoke access (re-encrypts for new recipients).");
 		branch.AddCommand<DeleteResourceCommand>("delete").WithDescription("Delete a resource by id.");
 	});
 

@@ -129,23 +129,35 @@ public sealed partial class PassboltClient
 
 		var shareRequest = new ShareResourceRequest { Permissions = [.. permissions] };
 
-		// Ask the server which recipients would newly gain access (expands groups authoritatively).
+		// Ask the server which recipients would gain or lose access (expands groups authoritatively).
 		var simulation = (await Resources.SimulateShareAsync(resourceId, shareRequest, cancellationToken).ConfigureAwait(false)).Value;
-		var addedUserIds = simulation.Changes?.Added?
-			.Select(a => a.UserId)
-			.Where(id => !string.IsNullOrEmpty(id))
-			.Distinct()
-			.ToList() ?? [];
+		var addedUserIds = ExtractUserIds(simulation?.Changes?.Added);
 
+		// When new recipients are added, Passbolt requires a secret for EVERY user that will have
+		// access afterwards, so re-encrypt for the full resulting set (current accessors + added -
+		// removed). Removal-only or permission-type-only changes keep the existing secrets.
 		if (addedUserIds.Count > 0)
 		{
+			var removedUserIds = ExtractUserIds(simulation?.Changes?.Removed);
+			var currentAccessorIds = (await Users.GetWithAccessToResourceAsync(resourceId, 1, cancellationToken).ConfigureAwait(false))
+				.Value.Select(u => u.Id).Where(id => !string.IsNullOrEmpty(id)).Select(id => id!);
+
+			var finalUserIds = currentAccessorIds
+				.Concat(addedUserIds)
+				.Distinct()
+				.Where(id => !removedUserIds.Contains(id))
+				.ToHashSet(StringComparer.Ordinal);
+
 			var allUsers = (await Users.GetAllWithGpgKeysAsync(1, cancellationToken).ConfigureAwait(false)).Value;
-			var addedUsers = allUsers.Where(u => u.Id is not null && addedUserIds.Contains(u.Id)).ToList();
-			shareRequest.Secrets = BuildRecipientSecrets(payload, addedUsers);
+			var recipients = allUsers.Where(u => u.Id is not null && finalUserIds.Contains(u.Id)).ToList();
+			shareRequest.Secrets = BuildRecipientSecrets(payload, recipients);
 		}
 
 		var response = await Resources.ShareAsync(resourceId, shareRequest, cancellationToken).ConfigureAwait(false);
-		return response.Value;
+
+		// The share endpoint does not always echo the resource body; re-fetch to return a consistent result.
+		Resource? shared = response.Value;
+		return shared ?? (await Resources.GetAsync(resourceId, cancellationToken).ConfigureAwait(false)).Value;
 	}
 
 	private async Task<string> BuildRotationPayloadAsync(
@@ -181,6 +193,14 @@ public sealed partial class PassboltClient
 
 		return BuildSecretPayload(slug, password, description);
 	}
+
+	private static List<string> ExtractUserIds(IEnumerable<ShareSimulationSecret>? changes)
+		=> changes?
+			.Select(c => c.UserId)
+			.Where(id => !string.IsNullOrEmpty(id))
+			.Select(id => id!)
+			.Distinct()
+			.ToList() ?? [];
 
 	private List<SecretRequest> BuildRecipientSecrets(string payload, IEnumerable<User> recipients)
 	{

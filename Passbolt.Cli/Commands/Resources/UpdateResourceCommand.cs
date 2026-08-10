@@ -26,8 +26,8 @@ public sealed class UpdateResourceSettings : IdSettings
 }
 
 /// <summary>
-/// Updates a resource's metadata. Rotating the secret/password is intentionally NOT supported here
-/// yet — it requires PGP encryption of the new secret to every recipient's key (tracked in #30).
+/// Updates a resource's metadata only. To rotate the secret/password use the <c>resource rotate</c>
+/// command, which re-encrypts the new secret for every recipient (issue #31).
 /// </summary>
 public sealed class UpdateResourceCommand : AsyncCommand<UpdateResourceSettings>
 {
