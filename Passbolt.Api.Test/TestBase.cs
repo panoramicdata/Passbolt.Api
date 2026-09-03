@@ -1,4 +1,4 @@
-namespace Passbolt.Api.Test;
+﻿namespace Passbolt.Api.Test;
 
 /// <summary>
 /// Base class for integration tests that provides a configured Passbolt client and test output helper.
@@ -43,6 +43,14 @@ public abstract class TestBase : TestBed<Fixture>
 		var logger = new TestOutputHelperLogger<PassboltClient>(testOutputHelper, LogLevel.Debug);
 		Client = Settings.CreateClient(logger);
 	}
+
+	/// <summary>
+	/// Asserts that the authenticated integration settings are present, with a message saying how
+	/// to supply them. Every authenticated test opens with this check.
+	/// </summary>
+	protected void RequireAuthenticatedConfiguration()
+		=> Settings.IsAuthenticatedConfigured.Should().BeTrue(
+			"Set Passbolt:Username, Passbolt:Password, and Passbolt:PrivateKeyBlock in user secrets to run authenticated integration tests.");
 
 	/// <summary>
 	/// Ensures the shared integration test folder exists and returns its identifier.

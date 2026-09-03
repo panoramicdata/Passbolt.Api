@@ -1,4 +1,4 @@
-namespace Passbolt.Api;
+﻿namespace Passbolt.Api;
 
 internal sealed class AuthenticatedLoggingHttpHandler : HttpClientHandler
 {
@@ -348,24 +348,7 @@ internal sealed class AuthenticatedLoggingHttpHandler : HttpClientHandler
 				plainObject = plainFactory.NextPgpObject();
 			}
 
-			while (plainObject is not null
-				&& plainObject is not Org.BouncyCastle.Bcpg.OpenPgp.PgpLiteralData)
-			{
-				if (plainObject is Org.BouncyCastle.Bcpg.OpenPgp.PgpOnePassSignatureList
-					|| plainObject is Org.BouncyCastle.Bcpg.OpenPgp.PgpSignatureList
-					|| plainObject is Org.BouncyCastle.Bcpg.OpenPgp.PgpMarker)
-				{
-					plainObject = plainFactory.NextPgpObject();
-					continue;
-				}
-
-				throw new InvalidOperationException($"Passbolt auth token contained unsupported PGP payload type {plainObject.GetType().Name}.");
-			}
-
-			if (plainObject is not Org.BouncyCastle.Bcpg.OpenPgp.PgpLiteralData literalData)
-			{
-				throw new InvalidOperationException("Passbolt auth token did not contain a literal data packet.");
-			}
+			var literalData = AdvanceToLiteralData(plainFactory, plainObject);
 
 			using var literalStream = literalData.GetInputStream();
 			using var reader = new StreamReader(literalStream, Encoding.UTF8);
@@ -376,6 +359,33 @@ internal sealed class AuthenticatedLoggingHttpHandler : HttpClientHandler
 			decompressedStream?.Dispose();
 		}
 	}
+
+	/// <summary>
+	/// Walks the PGP object stream to the literal data packet, skipping the signature and marker
+	/// packets that legitimately precede it and rejecting anything else.
+	/// </summary>
+	private static Org.BouncyCastle.Bcpg.OpenPgp.PgpLiteralData AdvanceToLiteralData(
+		Org.BouncyCastle.Bcpg.OpenPgp.PgpObjectFactory factory,
+		Org.BouncyCastle.Bcpg.OpenPgp.PgpObject? pgpObject)
+	{
+		while (pgpObject is not null and not Org.BouncyCastle.Bcpg.OpenPgp.PgpLiteralData)
+		{
+			if (!IsSkippablePacket(pgpObject))
+			{
+				throw new InvalidOperationException($"Passbolt auth token contained unsupported PGP payload type {pgpObject.GetType().Name}.");
+			}
+
+			pgpObject = factory.NextPgpObject();
+		}
+
+		return pgpObject as Org.BouncyCastle.Bcpg.OpenPgp.PgpLiteralData
+			?? throw new InvalidOperationException("Passbolt auth token did not contain a literal data packet.");
+	}
+
+	private static bool IsSkippablePacket(Org.BouncyCastle.Bcpg.OpenPgp.PgpObject pgpObject)
+		=> pgpObject is Org.BouncyCastle.Bcpg.OpenPgp.PgpOnePassSignatureList
+			or Org.BouncyCastle.Bcpg.OpenPgp.PgpSignatureList
+			or Org.BouncyCastle.Bcpg.OpenPgp.PgpMarker;
 
 	private static Stream? TryGetDecryptedDataStream(
 		IEnumerable<Org.BouncyCastle.Bcpg.OpenPgp.PgpPublicKeyEncryptedData> encryptedPackets,

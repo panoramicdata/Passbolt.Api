@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 
 namespace Passbolt.Api.Test;
 
@@ -13,7 +13,7 @@ public sealed class PassboltUsersIntegrationTests(ITestOutputHelper testOutputHe
 	[Fact]
 	public async Task ListUsers_ReturnsEnvelope()
 	{
-		Settings.IsAuthenticatedConfigured.Should().BeTrue("Set Passbolt:Username, Passbolt:Password, and Passbolt:PrivateKeyBlock in user secrets to run authenticated integration tests.");
+		RequireAuthenticatedConfiguration();
 
 		var response = await Client
 			.Users
@@ -31,7 +31,7 @@ public sealed class PassboltUsersIntegrationTests(ITestOutputHelper testOutputHe
 	[Fact]
 	public async Task GetUser_ReturnsEnvelope_ForConfiguredUser()
 	{
-		Settings.IsAuthenticatedConfigured.Should().BeTrue("Set Passbolt:Username, Passbolt:Password, and Passbolt:PrivateKeyBlock in user secrets to run authenticated integration tests.");
+		RequireAuthenticatedConfiguration();
 		var currentUser = await GetCurrentUserAsync();
 
 		var response = await Client
@@ -50,7 +50,7 @@ public sealed class PassboltUsersIntegrationTests(ITestOutputHelper testOutputHe
 	[Fact]
 	public async Task Mutating_UserLifecycle_IsCallable_WhenEnabled()
 	{
-		Settings.IsAuthenticatedConfigured.Should().BeTrue("Set Passbolt:Username, Passbolt:Password, and Passbolt:PrivateKeyBlock in user secrets to run authenticated integration tests.");
+		RequireAuthenticatedConfiguration();
 		if (!Settings.RunMutatingIntegrationTests)
 		{
 			TestOutputHelper.WriteLine("Skipping mutating user lifecycle test because Passbolt:RunMutatingIntegrationTests is false.");
@@ -61,9 +61,9 @@ public sealed class PassboltUsersIntegrationTests(ITestOutputHelper testOutputHe
 
 		var updateRequest = new Requests.UpdateUserRequest
 		{
-			FirstName = TryGetProfileProperty(currentUser, "first_name"),
-			LastName = TryGetProfileProperty(currentUser, "last_name"),
-			RoleId = TryGetRoleId(currentUser)
+			FirstName = TryGetStringProperty(currentUser.Profile, "first_name"),
+			LastName = TryGetStringProperty(currentUser.Profile, "last_name"),
+			RoleId = TryGetStringProperty(currentUser.Role, "id")
 		};
 
 		var updated = await Client
@@ -76,27 +76,13 @@ public sealed class PassboltUsersIntegrationTests(ITestOutputHelper testOutputHe
 		updated.Value.Id.Should().Be(currentUser.Id);
 	}
 
-	private static string? TryGetRoleId(Data.User user)
-	{
-		if (user.Role is not { ValueKind: JsonValueKind.Object } role)
-		{
-			return null;
-		}
-
-		return role.TryGetProperty("id", out var roleIdElement)
-			? roleIdElement.GetString()
-			: null;
-	}
-
-	private static string? TryGetProfileProperty(Data.User user, string propertyName)
-	{
-		if (user.Profile is not { ValueKind: JsonValueKind.Object } profile)
-		{
-			return null;
-		}
-
-		return profile.TryGetProperty(propertyName, out var propertyValue)
-			? propertyValue.GetString()
-			: null;
-	}
+	/// <summary>
+	/// Reads a string property from one of the loosely-typed JSON blobs on <see cref="Data.User"/>
+	/// (profile, role), returning null when the blob or the property is absent.
+	/// </summary>
+	private static string? TryGetStringProperty(JsonElement? container, string propertyName)
+		=> container is { ValueKind: JsonValueKind.Object } element
+			&& element.TryGetProperty(propertyName, out var value)
+				? value.GetString()
+				: null;
 }

@@ -1,4 +1,4 @@
-namespace Passbolt.Api.Test;
+﻿namespace Passbolt.Api.Test;
 
 /// <summary>
 /// Integration tests for group use cases.
@@ -23,26 +23,11 @@ public sealed class PassboltGroupsIntegrationTests(ITestOutputHelper testOutputH
 	[Fact]
 	public async Task GetGroup_ReturnsEnvelope_ForCreatedGroup()
 	{
-		var currentUser = await GetCurrentUserAsync();
-		var created = await Client.Groups.CreateAsync(new Requests.CreateGroupRequest
-		{
-			Name = $"Passbolt.Api Integration Group {Guid.NewGuid():N}",
-			GroupUsers =
-			[
-				new Requests.GroupUserMembershipRequest
-				{
-					UserId = currentUser.Id!,
-					IsAdmin = true
-				}
-			]
-		}, CancellationToken);
-
-		var createdGroupId = created.Value.Id;
-		createdGroupId.Should().NotBeNullOrWhiteSpace();
+		var (createdGroupId, _) = await CreateIntegrationGroupAsync();
 
 		try
 		{
-			var response = await Client.Groups.GetAsync(createdGroupId!, CancellationToken);
+			var response = await Client.Groups.GetAsync(createdGroupId, CancellationToken);
 
 			response.Should().NotBeNull();
 			response.Header.Should().NotBeNull();
@@ -51,7 +36,7 @@ public sealed class PassboltGroupsIntegrationTests(ITestOutputHelper testOutputH
 		}
 		finally
 		{
-			await Client.Groups.DeleteAsync(createdGroupId!, CancellationToken);
+			await Client.Groups.DeleteAsync(createdGroupId, CancellationToken);
 		}
 	}
 
@@ -67,41 +52,40 @@ public sealed class PassboltGroupsIntegrationTests(ITestOutputHelper testOutputH
 			return;
 		}
 
-		var currentUser = await GetCurrentUserAsync();
-		var created = await Client.Groups.CreateAsync(new Requests.CreateGroupRequest
-		{
-			Name = $"Passbolt.Api Integration Group {Guid.NewGuid():N}",
-			GroupUsers =
-			[
-				new Requests.GroupUserMembershipRequest
-				{
-					UserId = currentUser.Id!,
-					IsAdmin = true
-				}
-			]
-		}, CancellationToken);
-
-		var createdGroupId = created.Value.Id;
-		createdGroupId.Should().NotBeNullOrWhiteSpace();
+		var (createdGroupId, ownerUserId) = await CreateIntegrationGroupAsync();
 
 		try
 		{
-			await Client.Groups.UpdateAsync(createdGroupId!, new Requests.UpdateGroupRequest
+			await Client.Groups.UpdateAsync(createdGroupId, new Requests.UpdateGroupRequest
 			{
 				Name = $"Passbolt.Api Integration Group Updated {Guid.NewGuid():N}",
-				GroupUsers =
-				[
-					new Requests.GroupUserMembershipRequest
-					{
-						UserId = currentUser.Id!,
-						IsAdmin = true
-					}
-				]
+				GroupUsers = [AdminMembership(ownerUserId)]
 			}, CancellationToken);
 		}
 		finally
 		{
-			await Client.Groups.DeleteAsync(createdGroupId!, CancellationToken);
+			await Client.Groups.DeleteAsync(createdGroupId, CancellationToken);
 		}
 	}
+
+	/// <summary>
+	/// Creates a throwaway group administered by the configured user, returning its id alongside
+	/// that user's id (which callers need to re-state the membership on update).
+	/// </summary>
+	private async Task<(string GroupId, string OwnerUserId)> CreateIntegrationGroupAsync()
+	{
+		var currentUser = await GetCurrentUserAsync();
+		var created = await Client.Groups.CreateAsync(new Requests.CreateGroupRequest
+		{
+			Name = $"Passbolt.Api Integration Group {Guid.NewGuid():N}",
+			GroupUsers = [AdminMembership(currentUser.Id!)]
+		}, CancellationToken);
+
+		var createdGroupId = created.Value.Id;
+		createdGroupId.Should().NotBeNullOrWhiteSpace();
+		return (createdGroupId!, currentUser.Id!);
+	}
+
+	private static Requests.GroupUserMembershipRequest AdminMembership(string userId)
+		=> new() { UserId = userId, IsAdmin = true };
 }

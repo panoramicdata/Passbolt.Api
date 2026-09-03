@@ -1,4 +1,4 @@
-namespace Passbolt.Api.Test;
+﻿namespace Passbolt.Api.Test;
 
 /// <summary>
 /// Unit tests for PassboltClientOptions validation and initialization.
@@ -60,7 +60,7 @@ public sealed class PassboltClientOptionsUnitTests
 	public void Constructor_WithCustomLogger()
 	{
 		// Arrange
-		var mockLogger = new TestLogger();
+		ILogger mockLogger = NullLogger.Instance;
 
 		// Act
 		var options = new PassboltClientOptions
@@ -97,17 +97,5 @@ public sealed class PassboltClientOptionsUnitTests
 
 		// Assert
 		options.HttpClient.Should().Be(customClient);
-	}
-
-	private sealed class TestLogger : ILogger
-	{
-		public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
-		{
-			// Mock logger for testing - no-op implementation
-		}
-
-		public bool IsEnabled(LogLevel _) => false;
-
-		public IDisposable? BeginScope<TState>(TState _) where TState : notnull => null;
 	}
 }

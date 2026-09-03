@@ -1,4 +1,4 @@
-using Passbolt.Api.Cryptography;
+﻿using Passbolt.Api.Cryptography;
 
 namespace Passbolt.Api;
 
@@ -11,10 +11,10 @@ namespace Passbolt.Api;
 public sealed partial class PassboltClient
 {
 	/// <summary>The <c>password-string</c> resource type keeps the password only (description is plaintext).</summary>
-	public const string PasswordStringSlug = "password-string";
+	public static string PasswordStringSlug => "password-string";
 
 	/// <summary>The <c>password-and-description</c> resource type encrypts a JSON password/description pair.</summary>
-	public const string PasswordAndDescriptionSlug = "password-and-description";
+	public static string PasswordAndDescriptionSlug => "password-and-description";
 
 	/// <summary>
 	/// Creates a resource, encrypting the secret to the current user. When
@@ -131,26 +131,18 @@ public sealed partial class PassboltClient
 
 		// Ask the server which recipients would gain or lose access (expands groups authoritatively).
 		var simulation = (await Resources.SimulateShareAsync(resourceId, shareRequest, cancellationToken).ConfigureAwait(false)).Value;
-		var addedUserIds = ExtractUserIds(simulation?.Changes?.Added);
+		var changes = simulation?.Changes;
+		var addedUserIds = ExtractUserIds(changes?.Added);
 
-		// When new recipients are added, Passbolt requires a secret for EVERY user that will have
-		// access afterwards, so re-encrypt for the full resulting set (current accessors + added -
-		// removed). Removal-only or permission-type-only changes keep the existing secrets.
+		// Removal-only or permission-type-only changes keep the existing secrets.
 		if (addedUserIds.Count > 0)
 		{
-			var removedUserIds = ExtractUserIds(simulation?.Changes?.Removed);
-			var currentAccessorIds = (await Users.GetWithAccessToResourceAsync(resourceId, 1, cancellationToken).ConfigureAwait(false))
-				.Value.Select(u => u.Id).Where(id => !string.IsNullOrEmpty(id)).Select(id => id!);
-
-			var finalUserIds = currentAccessorIds
-				.Concat(addedUserIds)
-				.Distinct()
-				.Where(id => !removedUserIds.Contains(id))
-				.ToHashSet(StringComparer.Ordinal);
-
-			var allUsers = (await Users.GetAllWithGpgKeysAsync(1, cancellationToken).ConfigureAwait(false)).Value;
-			var recipients = allUsers.Where(u => u.Id is not null && finalUserIds.Contains(u.Id)).ToList();
-			shareRequest.Secrets = BuildRecipientSecrets(payload, recipients);
+			shareRequest.Secrets = await BuildSecretsForResultingAccessorsAsync(
+				resourceId,
+				payload,
+				addedUserIds,
+				changes?.Removed,
+				cancellationToken).ConfigureAwait(false);
 		}
 
 		var response = await Resources.ShareAsync(resourceId, shareRequest, cancellationToken).ConfigureAwait(false);
@@ -158,6 +150,33 @@ public sealed partial class PassboltClient
 		// The share endpoint does not always echo the resource body; re-fetch to return a consistent result.
 		Resource? shared = response.Value;
 		return shared ?? (await Resources.GetAsync(resourceId, cancellationToken).ConfigureAwait(false)).Value;
+	}
+
+	/// <summary>
+	/// Builds a secret for every user who will have access once the share is applied. When any
+	/// recipient is newly granted access, Passbolt requires a secret for the complete resulting
+	/// accessor set (current accessors + added - removed), not just for the added recipients.
+	/// </summary>
+	private async Task<List<SecretRequest>> BuildSecretsForResultingAccessorsAsync(
+		string resourceId,
+		string payload,
+		IEnumerable<string> addedUserIds,
+		IEnumerable<ShareSimulationSecret>? removedChanges,
+		CancellationToken cancellationToken)
+	{
+		var removedUserIds = ExtractUserIds(removedChanges);
+		var currentAccessorIds = (await Users.GetWithAccessToResourceAsync(resourceId, 1, cancellationToken).ConfigureAwait(false))
+			.Value.Select(u => u.Id).Where(id => !string.IsNullOrEmpty(id)).Select(id => id!);
+
+		var finalUserIds = currentAccessorIds
+			.Concat(addedUserIds)
+			.Distinct()
+			.Where(id => !removedUserIds.Contains(id))
+			.ToHashSet(StringComparer.Ordinal);
+
+		var allUsers = (await Users.GetAllWithGpgKeysAsync(1, cancellationToken).ConfigureAwait(false)).Value;
+		var recipients = allUsers.Where(u => u.Id is not null && finalUserIds.Contains(u.Id)).ToList();
+		return BuildRecipientSecrets(payload, recipients);
 	}
 
 	private async Task<string> BuildRotationPayloadAsync(

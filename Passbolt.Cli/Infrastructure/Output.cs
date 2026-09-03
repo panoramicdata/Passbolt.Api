@@ -1,4 +1,4 @@
-namespace Passbolt.Cli.Infrastructure;
+﻿namespace Passbolt.Cli.Infrastructure;
 
 /// <summary>
 /// Rendering helpers. In JSON mode stdout carries only the JSON payload (so it pipes cleanly into
@@ -18,8 +18,8 @@ public static class Output
 		=> Console.Out.WriteLine(JsonSerializer.Serialize(value, JsonOptions));
 
 	/// <summary>Writes a Spectre table to stdout (human mode only).</summary>
-	public static void Table(Table table)
-		=> AnsiConsole.Write(table);
+	public static void Table(Table value)
+		=> AnsiConsole.Write(value);
 
 	/// <summary>Writes an informational line to stderr, so it never pollutes JSON stdout.</summary>
 	public static void Info(string message)

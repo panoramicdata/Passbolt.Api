@@ -1,4 +1,4 @@
-namespace Passbolt.Api.Test;
+﻿namespace Passbolt.Api.Test;
 
 /// <summary>
 /// Integration tests for folder and reporting use cases.
@@ -59,7 +59,7 @@ public sealed class PassboltFoldersAndReportsIntegrationTests(ITestOutputHelper 
 	[Fact]
 	public async Task Mutating_FolderLifecycle_IsCallable_WhenEnabled()
 	{
-		Settings.IsAuthenticatedConfigured.Should().BeTrue("Set Passbolt:Username, Passbolt:Password, and Passbolt:PrivateKeyBlock in user secrets to run authenticated integration tests.");
+		RequireAuthenticatedConfiguration();
 		if (!Settings.RunMutatingIntegrationTests)
 		{
 			TestOutputHelper.WriteLine("Skipping mutating folder lifecycle test because Passbolt:RunMutatingIntegrationTests is false.");
