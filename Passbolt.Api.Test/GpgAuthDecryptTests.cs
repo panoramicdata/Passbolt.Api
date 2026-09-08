@@ -1,4 +1,4 @@
-﻿namespace Passbolt.Api.Test;
+namespace Passbolt.Api.Test;
 
 /// <summary>
 /// Deterministic (no live server) regression test for the GPGAuth challenge-token decryption

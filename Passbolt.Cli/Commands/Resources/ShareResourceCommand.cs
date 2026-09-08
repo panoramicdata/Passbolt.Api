@@ -40,10 +40,10 @@ public sealed class ShareResourceSettings : IdSettings
 /// </summary>
 public sealed class ShareResourceCommand : AsyncCommand<ShareResourceSettings>
 {
-	public override async Task<int> ExecuteAsync(CommandContext context, ShareResourceSettings settings)
+	protected override async Task<int> ExecuteAsync(CommandContext context, ShareResourceSettings settings, CancellationToken cancellationToken)
 	{
-		using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(120));
-		using var client = ClientFactory.Create(settings);
+		using var client = await ClientFactory.CreateAsync(settings, cancellationToken);
+		using var cts = CommandCancellation.WithTimeout(cancellationToken, TimeSpan.FromSeconds(120));
 
 		var type = settings.Permission switch
 		{

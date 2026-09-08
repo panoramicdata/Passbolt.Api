@@ -1,4 +1,4 @@
-﻿namespace Passbolt.Cli.Infrastructure;
+namespace Passbolt.Cli.Infrastructure;
 
 /// <summary>Maps Passbolt permission type codes to human-readable names.</summary>
 public static class PermissionLevel

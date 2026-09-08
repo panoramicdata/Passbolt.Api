@@ -12,8 +12,9 @@ public static class SecretInput
 	/// </summary>
 	/// <param name="supplied">The value from a command-line option, if any.</param>
 	/// <param name="label">The prompt label (for example "New password").</param>
+	/// <param name="cancellationToken">Cancels the prompt when the user interrupts the command.</param>
 	/// <returns>The resolved secret value.</returns>
-	public static string Resolve(string? supplied, string label)
+	public static async Task<string> ResolveAsync(string? supplied, string label, CancellationToken cancellationToken)
 	{
 		if (!string.IsNullOrEmpty(supplied))
 		{
@@ -25,6 +26,6 @@ public static class SecretInput
 			throw new CliException($"No secret. Pass --secret or run interactively to be prompted for the {label.ToLowerInvariant()}.");
 		}
 
-		return AnsiConsole.Prompt(new TextPrompt<string>($"{label}:").Secret());
+		return await AnsiConsole.PromptAsync(new TextPrompt<string>($"{label}:").Secret(), cancellationToken);
 	}
 }

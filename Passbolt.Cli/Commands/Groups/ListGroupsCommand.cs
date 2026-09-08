@@ -3,10 +3,10 @@ namespace Passbolt.Cli.Commands.Groups;
 /// <summary>Lists all groups.</summary>
 public sealed class ListGroupsCommand : AsyncCommand<ConnectionSettings>
 {
-	public override async Task<int> ExecuteAsync(CommandContext context, ConnectionSettings settings)
+	protected override async Task<int> ExecuteAsync(CommandContext context, ConnectionSettings settings, CancellationToken cancellationToken)
 	{
-		using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
-		using var client = ClientFactory.Create(settings);
+		using var client = await ClientFactory.CreateAsync(settings, cancellationToken);
+		using var cts = CommandCancellation.WithTimeout(cancellationToken, TimeSpan.FromSeconds(30));
 
 		var groups = (await client.Groups.ListAsync(cts.Token)).Value;
 

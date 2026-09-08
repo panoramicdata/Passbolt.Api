@@ -1,4 +1,4 @@
-﻿namespace Passbolt.Cli.Commands.Folders;
+namespace Passbolt.Cli.Commands.Folders;
 
 /// <summary>Deletes a folder by id (destructive; prompts unless --yes).</summary>
 public sealed class DeleteFolderCommand() : DeleteEntityCommand("folder")

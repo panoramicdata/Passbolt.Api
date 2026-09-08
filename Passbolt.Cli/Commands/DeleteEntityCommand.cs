@@ -10,16 +10,18 @@ namespace Passbolt.Cli.Commands;
 /// </param>
 public abstract class DeleteEntityCommand(string entityName) : AsyncCommand<DeleteSettings>
 {
-	public override async Task<int> ExecuteAsync(CommandContext context, DeleteSettings settings)
+	protected override async Task<int> ExecuteAsync(CommandContext context, DeleteSettings settings, CancellationToken cancellationToken)
 	{
-		using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
-		using var client = ClientFactory.Create(settings);
+		using var client = await ClientFactory.CreateAsync(settings, cancellationToken);
 
-		if (!settings.Yes && !Confirmations.Confirm($"Delete {entityName} '{settings.Id}'?", settings.Json))
+		if (!settings.Yes && !await Confirmations.ConfirmAsync($"Delete {entityName} '{settings.Id}'?", settings.Json, cancellationToken))
 		{
 			Output.Info("Aborted.");
 			return 1;
 		}
+
+		// Started after the prompt, so time spent confirming is not charged to the deadline.
+		using var cts = CommandCancellation.WithTimeout(cancellationToken, TimeSpan.FromSeconds(30));
 
 		var response = await DeleteAsync(client, settings.Id, cts.Token);
 		if (!response.IsSuccessStatusCode)

@@ -28,10 +28,10 @@ public sealed class CreateUserSettings : ConnectionSettings
 /// <summary>Creates (invites) a user. The user completes setup via the emailed invitation.</summary>
 public sealed class CreateUserCommand : AsyncCommand<CreateUserSettings>
 {
-	public override async Task<int> ExecuteAsync(CommandContext context, CreateUserSettings settings)
+	protected override async Task<int> ExecuteAsync(CommandContext context, CreateUserSettings settings, CancellationToken cancellationToken)
 	{
-		using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
-		using var client = ClientFactory.Create(settings);
+		using var client = await ClientFactory.CreateAsync(settings, cancellationToken);
+		using var cts = CommandCancellation.WithTimeout(cancellationToken, TimeSpan.FromSeconds(30));
 
 		var created = (await client.Users.CreateAsync(
 			new Passbolt.Api.Requests.CreateUserRequest

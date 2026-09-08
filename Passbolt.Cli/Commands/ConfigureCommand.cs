@@ -1,9 +1,9 @@
-﻿namespace Passbolt.Cli.Commands;
+namespace Passbolt.Cli.Commands;
 
 /// <summary>Writes the non-secret CLI config (server, username, private-key file). Never stores the passphrase.</summary>
 public sealed class ConfigureCommand : Command<ConnectionSettings>
 {
-	public override int Execute(CommandContext context, ConnectionSettings settings)
+	protected override int Execute(CommandContext context, ConnectionSettings settings, CancellationToken cancellationToken)
 	{
 		var (server, username, privateKeyFile) = ResolveWithPrompts(settings);
 

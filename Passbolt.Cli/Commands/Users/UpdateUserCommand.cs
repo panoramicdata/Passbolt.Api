@@ -24,10 +24,10 @@ public sealed class UpdateUserSettings : IdSettings
 /// <summary>Updates a user's profile fields.</summary>
 public sealed class UpdateUserCommand : AsyncCommand<UpdateUserSettings>
 {
-	public override async Task<int> ExecuteAsync(CommandContext context, UpdateUserSettings settings)
+	protected override async Task<int> ExecuteAsync(CommandContext context, UpdateUserSettings settings, CancellationToken cancellationToken)
 	{
-		using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
-		using var client = ClientFactory.Create(settings);
+		using var client = await ClientFactory.CreateAsync(settings, cancellationToken);
+		using var cts = CommandCancellation.WithTimeout(cancellationToken, TimeSpan.FromSeconds(30));
 
 		var updated = (await client.Users.UpdateAsync(settings.Id,
 			new Passbolt.Api.Requests.UpdateUserRequest

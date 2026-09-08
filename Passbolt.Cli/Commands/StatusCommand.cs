@@ -3,10 +3,10 @@ namespace Passbolt.Cli.Commands;
 /// <summary>Shows the Passbolt server status and healthcheck.</summary>
 public sealed class StatusCommand : AsyncCommand<ConnectionSettings>
 {
-	public override async Task<int> ExecuteAsync(CommandContext context, ConnectionSettings settings)
+	protected override async Task<int> ExecuteAsync(CommandContext context, ConnectionSettings settings, CancellationToken cancellationToken)
 	{
-		using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
-		using var client = ClientFactory.Create(settings);
+		using var client = await ClientFactory.CreateAsync(settings, cancellationToken);
+		using var cts = CommandCancellation.WithTimeout(cancellationToken, TimeSpan.FromSeconds(30));
 
 		var status = await client.Status.GetStatusAsync(cts.Token);
 		var healthcheck = await client.Status.GetHealthcheckAsync(cts.Token);

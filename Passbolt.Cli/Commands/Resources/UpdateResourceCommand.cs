@@ -31,10 +31,10 @@ public sealed class UpdateResourceSettings : IdSettings
 /// </summary>
 public sealed class UpdateResourceCommand : AsyncCommand<UpdateResourceSettings>
 {
-	public override async Task<int> ExecuteAsync(CommandContext context, UpdateResourceSettings settings)
+	protected override async Task<int> ExecuteAsync(CommandContext context, UpdateResourceSettings settings, CancellationToken cancellationToken)
 	{
-		using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
-		using var client = ClientFactory.Create(settings);
+		using var client = await ClientFactory.CreateAsync(settings, cancellationToken);
+		using var cts = CommandCancellation.WithTimeout(cancellationToken, TimeSpan.FromSeconds(30));
 
 		var updated = (await client.Resources.UpdateAsync(settings.Id,
 			new Passbolt.Api.Requests.UpdateResourceRequest

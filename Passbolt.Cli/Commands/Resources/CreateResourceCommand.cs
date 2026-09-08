@@ -42,12 +42,14 @@ public sealed class CreateResourceSettings : ConnectionSettings
 /// </summary>
 public sealed class CreateResourceCommand : AsyncCommand<CreateResourceSettings>
 {
-	public override async Task<int> ExecuteAsync(CommandContext context, CreateResourceSettings settings)
+	protected override async Task<int> ExecuteAsync(CommandContext context, CreateResourceSettings settings, CancellationToken cancellationToken)
 	{
-		using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
-		using var client = ClientFactory.Create(settings);
+		using var client = await ClientFactory.CreateAsync(settings, cancellationToken);
 
-		var secret = SecretInput.Resolve(settings.Secret, "Password");
+		var secret = await SecretInput.ResolveAsync(settings.Secret, "Password", cancellationToken);
+
+		// Started after the prompt, so time spent typing the secret is not charged to the deadline.
+		using var cts = CommandCancellation.WithTimeout(cancellationToken, TimeSpan.FromSeconds(60));
 
 		var created = await client.CreateResourceAsync(
 			settings.Name!,

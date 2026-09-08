@@ -1,4 +1,4 @@
-﻿namespace Passbolt.Cli.Infrastructure;
+namespace Passbolt.Cli.Infrastructure;
 
 /// <summary>
 /// Rendering helpers. In JSON mode stdout carries only the JSON payload (so it pipes cleanly into

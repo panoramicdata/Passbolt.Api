@@ -1,4 +1,4 @@
-﻿namespace Passbolt.Api.Test;
+namespace Passbolt.Api.Test;
 
 /// <summary>
 /// Unit tests for PassboltClientOptions validation and initialization.

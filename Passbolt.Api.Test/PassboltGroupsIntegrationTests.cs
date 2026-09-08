@@ -1,4 +1,4 @@
-﻿namespace Passbolt.Api.Test;
+namespace Passbolt.Api.Test;
 
 /// <summary>
 /// Integration tests for group use cases.

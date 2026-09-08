@@ -41,7 +41,7 @@ public static class ClientFactory
 	/// passphrase when it was not supplied and a console is attached. Throws <see cref="CliException"/>
 	/// with an actionable message when required inputs are missing.
 	/// </summary>
-	public static PassboltClient Create(ConnectionSettings settings)
+	public static async Task<PassboltClient> CreateAsync(ConnectionSettings settings, CancellationToken cancellationToken)
 	{
 		var (server, username, privateKeyFile) = Resolve(settings);
 
@@ -80,7 +80,7 @@ public static class ClientFactory
 				throw new CliException("No passphrase. Pass --password, set PASSBOLT_PASSWORD, or run interactively to be prompted.");
 			}
 
-			password = AnsiConsole.Prompt(new TextPrompt<string>("Private-key [green]passphrase[/]:").Secret());
+			password = await AnsiConsole.PromptAsync(new TextPrompt<string>("Private-key [green]passphrase[/]:").Secret(), cancellationToken);
 		}
 
 		return new PassboltClient(new PassboltClientOptions

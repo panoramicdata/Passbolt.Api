@@ -1,4 +1,4 @@
-﻿namespace Passbolt.Cli.Commands.Users;
+namespace Passbolt.Cli.Commands.Users;
 
 /// <summary>Deletes a user by id (destructive; prompts unless --yes).</summary>
 public sealed class DeleteUserCommand() : DeleteEntityCommand("user")

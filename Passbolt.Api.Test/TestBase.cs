@@ -1,4 +1,4 @@
-﻿namespace Passbolt.Api.Test;
+namespace Passbolt.Api.Test;
 
 /// <summary>
 /// Base class for integration tests that provides a configured Passbolt client and test output helper.

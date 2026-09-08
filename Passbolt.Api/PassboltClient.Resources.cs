@@ -1,4 +1,4 @@
-﻿using Passbolt.Api.Cryptography;
+using Passbolt.Api.Cryptography;
 
 namespace Passbolt.Api;
 

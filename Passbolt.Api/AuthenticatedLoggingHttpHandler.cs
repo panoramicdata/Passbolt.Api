@@ -1,4 +1,4 @@
-﻿namespace Passbolt.Api;
+namespace Passbolt.Api;
 
 internal sealed class AuthenticatedLoggingHttpHandler : HttpClientHandler
 {

@@ -18,12 +18,14 @@ public sealed class RotateResourceSettings : IdSettings
 /// </summary>
 public sealed class RotateResourceCommand : AsyncCommand<RotateResourceSettings>
 {
-	public override async Task<int> ExecuteAsync(CommandContext context, RotateResourceSettings settings)
+	protected override async Task<int> ExecuteAsync(CommandContext context, RotateResourceSettings settings, CancellationToken cancellationToken)
 	{
-		using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(120));
-		using var client = ClientFactory.Create(settings);
+		using var client = await ClientFactory.CreateAsync(settings, cancellationToken);
 
-		var secret = SecretInput.Resolve(settings.Secret, "New password");
+		var secret = await SecretInput.ResolveAsync(settings.Secret, "New password", cancellationToken);
+
+		// Started after the prompt, so time spent typing the secret is not charged to the deadline.
+		using var cts = CommandCancellation.WithTimeout(cancellationToken, TimeSpan.FromSeconds(120));
 
 		var updated = await client.RotateResourceSecretAsync(settings.Id, secret, settings.Description, cts.Token);
 

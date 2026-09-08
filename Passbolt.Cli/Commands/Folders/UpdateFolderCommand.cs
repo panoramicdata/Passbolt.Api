@@ -20,10 +20,10 @@ public sealed class UpdateFolderSettings : IdSettings
 /// <summary>Updates a folder's name/description.</summary>
 public sealed class UpdateFolderCommand : AsyncCommand<UpdateFolderSettings>
 {
-	public override async Task<int> ExecuteAsync(CommandContext context, UpdateFolderSettings settings)
+	protected override async Task<int> ExecuteAsync(CommandContext context, UpdateFolderSettings settings, CancellationToken cancellationToken)
 	{
-		using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
-		using var client = ClientFactory.Create(settings);
+		using var client = await ClientFactory.CreateAsync(settings, cancellationToken);
+		using var cts = CommandCancellation.WithTimeout(cancellationToken, TimeSpan.FromSeconds(30));
 
 		var updated = (await client.Folders.UpdateFolderAsync(settings.Id,
 			new Passbolt.Api.Requests.UpdateFolderRequest { Name = settings.Name, Description = settings.Description }, cts.Token)).Value;

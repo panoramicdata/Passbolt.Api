@@ -1,4 +1,4 @@
-﻿namespace Passbolt.Cli.Commands.Resources;
+namespace Passbolt.Cli.Commands.Resources;
 
 /// <summary>Deletes a resource by id (destructive; prompts unless --yes).</summary>
 public sealed class DeleteResourceCommand() : DeleteEntityCommand("resource")

@@ -1,4 +1,4 @@
-﻿namespace Passbolt.Cli.Commands.Groups;
+namespace Passbolt.Cli.Commands.Groups;
 
 /// <summary>Deletes a group by id (destructive; prompts unless --yes).</summary>
 public sealed class DeleteGroupCommand() : DeleteEntityCommand("group")

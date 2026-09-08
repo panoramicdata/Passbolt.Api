@@ -1,4 +1,4 @@
-﻿namespace Passbolt.Api.Test;
+namespace Passbolt.Api.Test;
 
 /// <summary>
 /// Reads the embedded PGP fixtures (throwaway key, signed+encrypted message, expected plaintext)

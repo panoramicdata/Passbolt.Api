@@ -3,10 +3,10 @@ namespace Passbolt.Cli.Commands.Folders;
 /// <summary>Gets a single folder by id.</summary>
 public sealed class GetFolderCommand : AsyncCommand<IdSettings>
 {
-	public override async Task<int> ExecuteAsync(CommandContext context, IdSettings settings)
+	protected override async Task<int> ExecuteAsync(CommandContext context, IdSettings settings, CancellationToken cancellationToken)
 	{
-		using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
-		using var client = ClientFactory.Create(settings);
+		using var client = await ClientFactory.CreateAsync(settings, cancellationToken);
+		using var cts = CommandCancellation.WithTimeout(cancellationToken, TimeSpan.FromSeconds(30));
 
 		var folder = (await client.Folders.GetFolderAsync(settings.Id, cts.Token)).Value;
 
