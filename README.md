@@ -5,7 +5,21 @@
 [![.NET 10](https://img.shields.io/badge/.NET-10.0-blue.svg)](https://dotnet.microsoft.com/download)
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/86cd75f6039248d68769cd6e63784397)](https://app.codacy.com/gh/panoramicdata/Passbolt.Api/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
 
-Typed .NET client primitives for integrating with Passbolt APIs in a safe, testable, and DI-friendly way.
+Typed .NET client primitives for integrating with the Passbolt API in a safe, testable, and DI-friendly way.
+Targets the **Passbolt REST API v2** (the JSON endpoints, e.g. `/resources.json`).
+
+> [!IMPORTANT]
+> **Community-maintained project.** `Passbolt.Api` and `Passbolt.Cli` are developed and published
+> independently by [Panoramic Data Limited](https://github.com/panoramicdata). They are **not affiliated
+> with, endorsed by, or sponsored by Passbolt S.A.**
+>
+> Passbolt and the Passbolt logo are registered trademarks of Passbolt S.A. The name is used here only to
+> describe compatibility with the Passbolt API.
+>
+> Maintenance, releases and support for this client come from this repository — not from Passbolt S.A.
+> Report issues with *this client* [here](https://github.com/panoramicdata/Passbolt.Api/issues), and see
+> [SECURITY.md](SECURITY.md) for vulnerability reporting. Vulnerabilities in **Passbolt itself** should go to
+> [Passbolt S.A.](https://www.passbolt.com/security).
 
 ## Installation
 
@@ -156,7 +170,15 @@ Every command accepts `--server/-s`, `--username/-u`, `--password/-p`, `--privat
 - [Passbolt](https://www.passbolt.com/) — the open-source password manager this client talks to. 💙
 - [`passbolt/go-passbolt`](https://github.com/passbolt/go-passbolt) and [`passbolt/go-passbolt-cli`](https://github.com/passbolt/go-passbolt-cli) — the excellent, mature Go SDK and CLI. They're the reference implementation we learned from, and remain the go-to for Go users. `Passbolt.Api`/`Passbolt.Cli` exist to give the .NET ecosystem a first-class, idiomatic option — with a bit of friendly cross-language rivalry. 🤝
 
-This project is community-built and is not an official Passbolt product. "Passbolt" is a trademark of its respective owner and is used here only to describe interoperability.
+## Trademarks & disclaimer
+
+> Passbolt and the Passbolt logo are registered trademarks of Passbolt S.A. This project is community
+> maintained and is not affiliated with, endorsed by, or sponsored by Passbolt S.A.
+
+The Passbolt name appears in this repository, in the package identifiers and in this documentation only
+nominatively — to describe compatibility with the Passbolt API — consistent with Passbolt's
+[Trademark Guidelines](https://www.passbolt.com/credits/trademark-guidelines). No official status is claimed
+or implied, and no Passbolt S.A. branding, logo or visual identity is used.
 
 ## License
 
