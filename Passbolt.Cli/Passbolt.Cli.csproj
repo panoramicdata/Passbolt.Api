@@ -22,7 +22,7 @@
 		<RepositoryType>git</RepositoryType>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageIcon>Logo.png</PackageIcon>
-		<Description>Cross-platform command-line client for the Passbolt password manager, built on the Passbolt.Api .NET client. Installable as a .NET global tool (dotnet tool install -g Passbolt.Cli). Read, list and audit Passbolt resources, users, groups, folders and permissions — including an ownership audit that flags resources with fewer than two owners or no group owner.</Description>
+		<Description>Cross-platform command-line client for the Passbolt password manager, built on the Passbolt.Api .NET client. Installable as a .NET global tool (dotnet tool install -g Passbolt.Cli). Read, list and audit Passbolt resources, users, groups, folders and permissions — including an ownership audit that flags resources with fewer than two owners or no group owner. Community-maintained by Panoramic Data Limited; not affiliated with, endorsed by, or sponsored by Passbolt S.A. Passbolt and the Passbolt logo are registered trademarks of Passbolt S.A.</Description>
 		<PackageTags>passbolt;cli;dotnet-tool;password-manager;security;audit;PanoramicData</PackageTags>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>

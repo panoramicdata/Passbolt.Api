@@ -12,7 +12,7 @@
 <RepositoryType>git</RepositoryType>
 <PackageLicenseExpression>MIT</PackageLicenseExpression>
 <PackageIcon>Logo.png</PackageIcon>
-<Description>Typed .NET client primitives for Passbolt API integration.</Description>
+<Description>Typed .NET client primitives for integrating with the Passbolt API (REST API v2). Community-maintained by Panoramic Data Limited; not affiliated with, endorsed by, or sponsored by Passbolt S.A. Passbolt and the Passbolt logo are registered trademarks of Passbolt S.A.</Description>
 <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
 <IncludeSymbols>true</IncludeSymbols>
 <SymbolPackageFormat>snupkg</SymbolPackageFormat>
