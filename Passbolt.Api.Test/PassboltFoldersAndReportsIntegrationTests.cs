@@ -3,6 +3,9 @@ namespace Passbolt.Api.Test;
 /// <summary>
 /// Integration tests for folder and reporting use cases.
 /// </summary>
+// Calls a live Passbolt server with credentials from user secrets, so CI (which has none) excludes
+// this class from the coverage run with Category!=Integration.
+[Trait("Category", "Integration")]
 public sealed class PassboltFoldersAndReportsIntegrationTests(ITestOutputHelper testOutputHelper, Fixture fixture) : TestBase(testOutputHelper, fixture)
 {
 	/// <summary>

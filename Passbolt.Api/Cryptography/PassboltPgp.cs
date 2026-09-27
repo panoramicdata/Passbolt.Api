@@ -167,7 +167,7 @@ public static class PassboltPgp
 		{
 			foreach (PgpPublicKey publicKey in ring.GetPublicKeys())
 			{
-				if (!publicKey.IsEncryptionKey || publicKey.IsRevoked())
+				if (!publicKey.IsEncryptionKey || publicKey.HasRevocation())
 				{
 					continue;
 				}
