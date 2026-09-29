@@ -16,7 +16,7 @@
     <PackageVersion Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.12" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.10.1" />
     <PackageVersion Include="Nerdbank.GitVersioning" Version="3.10.94" />
-    <PackageVersion Include="Refit" Version="15.2.0" />
+    <PackageVersion Include="Refit" Version="16.3.0" />
     <PackageVersion Include="Spectre.Console" Version="0.57.2" />
     <PackageVersion Include="Spectre.Console.Cli" Version="0.56.1" />
     <PackageVersion Include="Xunit.Microsoft.DependencyInjection" Version="10.1.0" />
