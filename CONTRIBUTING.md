@@ -1,34 +1,32 @@
-# Contributing to Passbolt.Api
+# Contributing
 
-Thank you for contributing.
+Thank you for your interest in contributing to this project!
 
-## Workflow
+## How to Contribute
 
-1. Fork the repository.
-2. Create a feature branch from `main`.
-3. Make focused changes with tests.
-4. Ensure the build passes with zero diagnostics.
-5. Open a pull request against `main`.
+1. **Fork** the repository
+2. **Create a branch** for your feature or fix (`git checkout -b feature/my-feature`)
+3. **Make your changes** following the coding standards below
+4. **Write or update tests** as appropriate
+5. **Ensure the build passes** with zero errors, zero warnings, and zero messages
+6. **Submit a Pull Request** against the `main` branch
 
 ## Coding Standards
 
-- Follow `.editorconfig`.
-- Use file-scoped namespaces.
-- Add XML documentation for public APIs.
-- Prefer `System.Text.Json` over `Newtonsoft.Json`.
-- Use Refit for HTTP client interfaces.
-- Keep `TreatWarningsAsErrors` enabled.
+- All public members must have XML documentation comments
+- Use `System.Text.Json` — do not introduce `Newtonsoft.Json`
+- Use Refit for HTTP client interfaces
+- Use file-scoped namespaces
+- Use the `required` keyword for DTO properties where appropriate
+- Ensure `TreatWarningsAsErrors` remains enabled
+- All code must compile with zero diagnostics
 
 ## Testing
 
-- Use xUnit v3.
-- Use AwesomeAssertions for assertions.
-- Keep tests deterministic and isolated.
-- Ensure all tests pass before opening a PR.
+- Use xUnit v3 for all tests
+- Use AwesomeAssertions for fluent assertions
+- Ensure all existing tests pass before submitting a PR
 
-## Pull Request Checklist
+## License
 
-- [ ] Build passes in Release mode.
-- [ ] Tests pass in Release mode.
-- [ ] New public APIs have XML docs.
-- [ ] No secrets were introduced.
+By contributing, you agree that your contributions will be licensed under the MIT License.
