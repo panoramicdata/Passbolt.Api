@@ -3,7 +3,7 @@ namespace Passbolt.Cli.Commands.Resources;
 /// <summary>Lists all resources visible to the authenticated user.</summary>
 public sealed class ListResourcesCommand : AsyncCommand<ConnectionSettings>
 {
-	protected override async Task<int> ExecuteAsync(CommandContext context, ConnectionSettings settings, CancellationToken cancellationToken)
+	public override async Task<int> ExecuteAsync(CommandContext context, ConnectionSettings settings, CancellationToken cancellationToken)
 	{
 		using var client = await ClientFactory.CreateAsync(settings, cancellationToken);
 		using var cts = CommandCancellation.WithTimeout(cancellationToken, TimeSpan.FromSeconds(30));

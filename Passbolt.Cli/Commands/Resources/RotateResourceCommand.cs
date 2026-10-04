@@ -18,7 +18,7 @@ public sealed class RotateResourceSettings : IdSettings
 /// </summary>
 public sealed class RotateResourceCommand : AsyncCommand<RotateResourceSettings>
 {
-	protected override async Task<int> ExecuteAsync(CommandContext context, RotateResourceSettings settings, CancellationToken cancellationToken)
+	public override async Task<int> ExecuteAsync(CommandContext context, RotateResourceSettings settings, CancellationToken cancellationToken)
 	{
 		using var client = await ClientFactory.CreateAsync(settings, cancellationToken);
 

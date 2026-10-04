@@ -3,7 +3,7 @@ namespace Passbolt.Cli.Commands.Roles;
 /// <summary>Lists available roles (useful for the --role-id on 'user create').</summary>
 public sealed class ListRolesCommand : AsyncCommand<ConnectionSettings>
 {
-	protected override async Task<int> ExecuteAsync(CommandContext context, ConnectionSettings settings, CancellationToken cancellationToken)
+	public override async Task<int> ExecuteAsync(CommandContext context, ConnectionSettings settings, CancellationToken cancellationToken)
 	{
 		using var client = await ClientFactory.CreateAsync(settings, cancellationToken);
 		using var cts = CommandCancellation.WithTimeout(cancellationToken, TimeSpan.FromSeconds(30));

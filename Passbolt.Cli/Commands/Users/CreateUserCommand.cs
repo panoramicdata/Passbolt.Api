@@ -28,7 +28,7 @@ public sealed class CreateUserSettings : ConnectionSettings
 /// <summary>Creates (invites) a user. The user completes setup via the emailed invitation.</summary>
 public sealed class CreateUserCommand : AsyncCommand<CreateUserSettings>
 {
-	protected override async Task<int> ExecuteAsync(CommandContext context, CreateUserSettings settings, CancellationToken cancellationToken)
+	public override async Task<int> ExecuteAsync(CommandContext context, CreateUserSettings settings, CancellationToken cancellationToken)
 	{
 		using var client = await ClientFactory.CreateAsync(settings, cancellationToken);
 		using var cts = CommandCancellation.WithTimeout(cancellationToken, TimeSpan.FromSeconds(30));

@@ -16,7 +16,7 @@ public sealed class OwnershipAuditCommand : AsyncCommand<OwnershipAuditSettings>
 		IReadOnlyList<string> Owners,
 		IReadOnlyList<string> Reasons);
 
-	protected override async Task<int> ExecuteAsync(CommandContext context, OwnershipAuditSettings settings, CancellationToken cancellationToken)
+	public override async Task<int> ExecuteAsync(CommandContext context, OwnershipAuditSettings settings, CancellationToken cancellationToken)
 	{
 		using var client = await ClientFactory.CreateAsync(settings, cancellationToken);
 		using var cts = CommandCancellation.WithTimeout(cancellationToken, TimeSpan.FromMinutes(5));

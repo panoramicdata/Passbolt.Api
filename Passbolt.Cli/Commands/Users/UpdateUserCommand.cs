@@ -24,7 +24,7 @@ public sealed class UpdateUserSettings : IdSettings
 /// <summary>Updates a user's profile fields.</summary>
 public sealed class UpdateUserCommand : AsyncCommand<UpdateUserSettings>
 {
-	protected override async Task<int> ExecuteAsync(CommandContext context, UpdateUserSettings settings, CancellationToken cancellationToken)
+	public override async Task<int> ExecuteAsync(CommandContext context, UpdateUserSettings settings, CancellationToken cancellationToken)
 	{
 		using var client = await ClientFactory.CreateAsync(settings, cancellationToken);
 		using var cts = CommandCancellation.WithTimeout(cancellationToken, TimeSpan.FromSeconds(30));

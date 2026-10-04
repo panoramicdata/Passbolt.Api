@@ -3,7 +3,7 @@ namespace Passbolt.Cli.Commands.Groups;
 /// <summary>Gets a single group by id, including its members.</summary>
 public sealed class GetGroupCommand : AsyncCommand<IdSettings>
 {
-	protected override async Task<int> ExecuteAsync(CommandContext context, IdSettings settings, CancellationToken cancellationToken)
+	public override async Task<int> ExecuteAsync(CommandContext context, IdSettings settings, CancellationToken cancellationToken)
 	{
 		using var client = await ClientFactory.CreateAsync(settings, cancellationToken);
 		using var cts = CommandCancellation.WithTimeout(cancellationToken, TimeSpan.FromSeconds(30));

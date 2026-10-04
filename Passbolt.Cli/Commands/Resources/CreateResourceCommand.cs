@@ -42,7 +42,7 @@ public sealed class CreateResourceSettings : ConnectionSettings
 /// </summary>
 public sealed class CreateResourceCommand : AsyncCommand<CreateResourceSettings>
 {
-	protected override async Task<int> ExecuteAsync(CommandContext context, CreateResourceSettings settings, CancellationToken cancellationToken)
+	public override async Task<int> ExecuteAsync(CommandContext context, CreateResourceSettings settings, CancellationToken cancellationToken)
 	{
 		using var client = await ClientFactory.CreateAsync(settings, cancellationToken);
 
