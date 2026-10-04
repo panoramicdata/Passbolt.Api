@@ -20,7 +20,7 @@ public sealed class AddGroupMemberSettings : IdSettings
 /// <summary>Adds a member to a group (a PUT with the new membership delta).</summary>
 public sealed class AddGroupMemberCommand : AsyncCommand<AddGroupMemberSettings>
 {
-	protected override async Task<int> ExecuteAsync(CommandContext context, AddGroupMemberSettings settings, CancellationToken cancellationToken)
+	public override async Task<int> ExecuteAsync(CommandContext context, AddGroupMemberSettings settings, CancellationToken cancellationToken)
 	{
 		using var client = await ClientFactory.CreateAsync(settings, cancellationToken);
 		using var cts = CommandCancellation.WithTimeout(cancellationToken, TimeSpan.FromSeconds(30));

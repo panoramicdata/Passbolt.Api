@@ -5,7 +5,7 @@ public sealed class ListUsersCommand : AsyncCommand<ConnectionSettings>
 {
 	private const int TimeoutSeconds = 30;
 
-	protected override async Task<int> ExecuteAsync(CommandContext context, ConnectionSettings settings, CancellationToken cancellationToken)
+	public override async Task<int> ExecuteAsync(CommandContext context, ConnectionSettings settings, CancellationToken cancellationToken)
 	{
 		using var client = await ClientFactory.CreateAsync(settings, cancellationToken);
 		using var cts = CommandCancellation.WithTimeout(cancellationToken, TimeSpan.FromSeconds(TimeoutSeconds));

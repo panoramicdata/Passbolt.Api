@@ -3,7 +3,7 @@ namespace Passbolt.Cli.Commands;
 /// <summary>Shows the currently authenticated Passbolt user.</summary>
 public sealed class WhoAmICommand : AsyncCommand<ConnectionSettings>
 {
-	protected override async Task<int> ExecuteAsync(CommandContext context, ConnectionSettings settings, CancellationToken cancellationToken)
+	public override async Task<int> ExecuteAsync(CommandContext context, ConnectionSettings settings, CancellationToken cancellationToken)
 	{
 		using var client = await ClientFactory.CreateAsync(settings, cancellationToken);
 		using var cts = CommandCancellation.WithTimeout(cancellationToken, TimeSpan.FromSeconds(30));

@@ -10,7 +10,7 @@ namespace Passbolt.Cli.Commands;
 /// </param>
 public abstract class DeleteEntityCommand(string entityName) : AsyncCommand<DeleteSettings>
 {
-	protected override async Task<int> ExecuteAsync(CommandContext context, DeleteSettings settings, CancellationToken cancellationToken)
+	public override async Task<int> ExecuteAsync(CommandContext context, DeleteSettings settings, CancellationToken cancellationToken)
 	{
 		using var client = await ClientFactory.CreateAsync(settings, cancellationToken);
 

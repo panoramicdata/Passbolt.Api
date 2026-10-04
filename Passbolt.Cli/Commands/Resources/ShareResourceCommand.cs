@@ -40,7 +40,7 @@ public sealed class ShareResourceSettings : IdSettings
 /// </summary>
 public sealed class ShareResourceCommand : AsyncCommand<ShareResourceSettings>
 {
-	protected override async Task<int> ExecuteAsync(CommandContext context, ShareResourceSettings settings, CancellationToken cancellationToken)
+	public override async Task<int> ExecuteAsync(CommandContext context, ShareResourceSettings settings, CancellationToken cancellationToken)
 	{
 		using var client = await ClientFactory.CreateAsync(settings, cancellationToken);
 		using var cts = CommandCancellation.WithTimeout(cancellationToken, TimeSpan.FromSeconds(120));

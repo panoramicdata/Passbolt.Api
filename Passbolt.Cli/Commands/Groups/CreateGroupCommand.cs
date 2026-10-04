@@ -20,7 +20,7 @@ public sealed class CreateGroupSettings : ConnectionSettings
 /// <summary>Creates a group with an initial manager.</summary>
 public sealed class CreateGroupCommand : AsyncCommand<CreateGroupSettings>
 {
-	protected override async Task<int> ExecuteAsync(CommandContext context, CreateGroupSettings settings, CancellationToken cancellationToken)
+	public override async Task<int> ExecuteAsync(CommandContext context, CreateGroupSettings settings, CancellationToken cancellationToken)
 	{
 		using var client = await ClientFactory.CreateAsync(settings, cancellationToken);
 		using var cts = CommandCancellation.WithTimeout(cancellationToken, TimeSpan.FromSeconds(30));

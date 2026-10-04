@@ -3,7 +3,7 @@ namespace Passbolt.Cli.Commands.Permissions;
 /// <summary>Lists the permissions (principals + access level) on a resource or held by a user.</summary>
 public sealed class ListPermissionsCommand : AsyncCommand<PermissionListSettings>
 {
-	protected override async Task<int> ExecuteAsync(CommandContext context, PermissionListSettings settings, CancellationToken cancellationToken)
+	public override async Task<int> ExecuteAsync(CommandContext context, PermissionListSettings settings, CancellationToken cancellationToken)
 	{
 		using var client = await ClientFactory.CreateAsync(settings, cancellationToken);
 		using var cts = CommandCancellation.WithTimeout(cancellationToken, TimeSpan.FromSeconds(30));
