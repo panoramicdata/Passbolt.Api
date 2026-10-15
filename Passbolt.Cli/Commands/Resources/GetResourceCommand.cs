@@ -16,6 +16,12 @@ public sealed class GetResourceCommand : AsyncCommand<IdSettings>
 			return 0;
 		}
 
+		OutputTable(resource);
+		return 0;
+	}
+
+	private static void OutputTable(Resource resource)
+	{
 		var table = new Table().Border(TableBorder.Rounded);
 		table.AddColumn("Field");
 		table.AddColumn("Value");
@@ -26,6 +32,5 @@ public sealed class GetResourceCommand : AsyncCommand<IdSettings>
 		table.AddRow("Description", Output.Cell(resource.Description));
 		table.AddRow("Folder parent", Output.Cell(resource.FolderParentId));
 		Output.Table(table);
-		return 0;
 	}
 }

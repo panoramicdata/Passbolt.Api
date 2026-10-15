@@ -13,9 +13,17 @@ public sealed class ListResourcesCommand : AsyncCommand<ConnectionSettings>
 		if (settings.Json)
 		{
 			Output.Json(resources);
-			return 0;
+		}
+		else
+		{
+			WriteResourcesTable(resources);
 		}
 
+		return 0;
+	}
+
+	private static void WriteResourcesTable(IReadOnlyList<Resource> resources)
+	{
 		var table = new Table().Border(TableBorder.Rounded);
 		table.AddColumn("Id");
 		table.AddColumn("Name");
@@ -32,6 +40,5 @@ public sealed class ListResourcesCommand : AsyncCommand<ConnectionSettings>
 
 		Output.Table(table);
 		Output.Info($"{resources.Count} resource(s).");
-		return 0;
 	}
 }

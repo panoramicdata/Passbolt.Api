@@ -21,6 +21,15 @@ public static class Output
 	public static void Table(Table value)
 		=> AnsiConsole.Write(value);
 
+	/// <summary>Creates a bordered, rounded two-column "Field"/"Value" table.</summary>
+	public static Table TableBase()
+	{
+		var table = new Table().Border(TableBorder.Rounded);
+		table.AddColumn("Field");
+		table.AddColumn("Value");
+		return table;
+	}
+
 	/// <summary>Writes an informational line to stderr, so it never pollutes JSON stdout.</summary>
 	public static void Info(string message)
 		=> Console.Error.WriteLine(message);

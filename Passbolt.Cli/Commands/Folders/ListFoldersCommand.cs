@@ -13,9 +13,17 @@ public sealed class ListFoldersCommand : AsyncCommand<ConnectionSettings>
 		if (settings.Json)
 		{
 			Output.Json(folders);
-			return 0;
+		}
+		else
+		{
+			WriteFoldersTable(folders);
 		}
 
+		return 0;
+	}
+
+	private static void WriteFoldersTable(IReadOnlyList<Folder> folders)
+	{
 		var table = new Table().Border(TableBorder.Rounded);
 		table.AddColumn("Id");
 		table.AddColumn("Name");
@@ -32,6 +40,5 @@ public sealed class ListFoldersCommand : AsyncCommand<ConnectionSettings>
 
 		Output.Table(table);
 		Output.Info($"{folders.Count} folder(s).");
-		return 0;
 	}
 }

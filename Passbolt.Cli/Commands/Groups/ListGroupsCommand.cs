@@ -13,9 +13,17 @@ public sealed class ListGroupsCommand : AsyncCommand<ConnectionSettings>
 		if (settings.Json)
 		{
 			Output.Json(groups);
-			return 0;
+		}
+		else
+		{
+			WriteGroupsTable(groups);
 		}
 
+		return 0;
+	}
+
+	private static void WriteGroupsTable(IReadOnlyList<Group> groups)
+	{
 		var table = new Table().Border(TableBorder.Rounded);
 		table.AddColumn("Id");
 		table.AddColumn("Name");
@@ -30,6 +38,5 @@ public sealed class ListGroupsCommand : AsyncCommand<ConnectionSettings>
 
 		Output.Table(table);
 		Output.Info($"{groups.Count} group(s).");
-		return 0;
 	}
 }

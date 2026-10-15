@@ -17,9 +17,7 @@ public sealed class StatusCommand : AsyncCommand<ConnectionSettings>
 			return 0;
 		}
 
-		var table = new Table().Border(TableBorder.Rounded);
-		table.AddColumn("Field");
-		table.AddColumn("Value");
+		var table = Output.TableBase();
 		table.AddRow("Status", Output.Cell(status.Status));
 		Output.Table(table);
 		return 0;

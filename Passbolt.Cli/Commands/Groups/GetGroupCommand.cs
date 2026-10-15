@@ -16,9 +16,7 @@ public sealed class GetGroupCommand : AsyncCommand<IdSettings>
 			return 0;
 		}
 
-		var table = new Table().Border(TableBorder.Rounded);
-		table.AddColumn("Field");
-		table.AddColumn("Value");
+		var table = Output.TableBase();
 		table.AddRow("Id", Output.Cell(group.Id));
 		table.AddRow("Name", Output.Cell(group.Name));
 		table.AddRow("Description", Output.Cell(group.Description));

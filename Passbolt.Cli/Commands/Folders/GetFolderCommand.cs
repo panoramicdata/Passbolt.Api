@@ -16,9 +16,7 @@ public sealed class GetFolderCommand : AsyncCommand<IdSettings>
 			return 0;
 		}
 
-		var table = new Table().Border(TableBorder.Rounded);
-		table.AddColumn("Field");
-		table.AddColumn("Value");
+		var table = Output.TableBase();
 		table.AddRow("Id", Output.Cell(folder.Id));
 		table.AddRow("Name", Output.Cell(folder.Name));
 		table.AddRow("Personal", folder.Personal ? "yes" : "no");

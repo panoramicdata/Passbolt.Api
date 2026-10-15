@@ -13,9 +13,17 @@ public sealed class ListRolesCommand : AsyncCommand<ConnectionSettings>
 		if (settings.Json)
 		{
 			Output.Json(roles);
-			return 0;
+		}
+		else
+		{
+			WriteRolesTable(roles);
 		}
 
+		return 0;
+	}
+
+	private static void WriteRolesTable(IReadOnlyList<Role> roles)
+	{
 		var table = new Table().Border(TableBorder.Rounded);
 		table.AddColumn("Id");
 		table.AddColumn("Name");
@@ -27,6 +35,5 @@ public sealed class ListRolesCommand : AsyncCommand<ConnectionSettings>
 
 		Output.Table(table);
 		Output.Info($"{roles.Count} role(s).");
-		return 0;
 	}
 }
