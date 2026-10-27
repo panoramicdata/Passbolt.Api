@@ -62,61 +62,50 @@ internal sealed class FakePassboltServer : IAsyncDisposable
 	private async Task HandleAsync(HttpListenerContext context)
 	{
 		var request = context.Request;
-		var response = context.Response;
-		var path = request.Url!.AbsolutePath;
 		var body = request.HasEntityBody ? await new StreamReader(request.InputStream).ReadToEndAsync() : string.Empty;
 
-		switch ((request.HttpMethod, path))
+		var (status, json) = (request.HttpMethod, request.Url!.AbsolutePath) switch
 		{
-			case ("POST", "/auth/login.json"):
-				using (var document = JsonDocument.Parse(body))
-				{
-					if (!document.RootElement.GetProperty("gpg_auth").TryGetProperty("user_token_result", out _))
-					{
-						response.AddHeader("X-GPGAuth-User-Auth-Token", Uri.EscapeDataString(TestFixtures.Read("test-message.asc")));
-						await WriteAsync(response, 200, """{"header":{"status":"success"}}""");
-						break;
-					}
-				}
+			("POST", "/auth/login.json") => Login(context.Response, body),
+			("GET", "/users/me.json") => Me(request),
+			("POST", "/mfa/verify/totp.json") => VerifyTotp(context.Response, body),
+			_ => (404, "{}")
+		};
 
-				response.AppendCookie(new Cookie("passbolt_session", "session-1", "/"));
-				response.AppendCookie(new Cookie("csrfToken", "csrf-1", "/"));
-				await WriteAsync(response, 200, """{"header":{"status":"success"},"body":{}}""");
-				break;
-
-			case ("GET", "/users/me.json"):
-				if (request.Cookies["passbolt_mfa"]?.Value == RememberedValue)
-				{
-					await WriteAsync(response, 200, """{"header":{"status":"success"},"body":{"id":"user-1"}}""");
-				}
-				else
-				{
-					await WriteAsync(response, 403, """{"header":{"status":"error","code":403},"body":{"providers":{"totp":"/mfa/verify/totp.json"}}}""");
-				}
-
-				break;
-
-			case ("POST", "/mfa/verify/totp.json"):
-				VerifyRequests.Add(body);
-				using (var document = JsonDocument.Parse(body))
-				{
-					if (document.RootElement.GetProperty("totp").GetString() != AcceptedCode)
-					{
-						await WriteAsync(response, 400, """{"header":{"status":"error"}}""");
-						break;
-					}
-				}
-
-				response.AppendCookie(new Cookie("passbolt_mfa", RememberedValue, "/"));
-				await WriteAsync(response, 200, """{"header":{"status":"success"}}""");
-				break;
-
-			default:
-				await WriteAsync(response, 404, "{}");
-				break;
-		}
+		await WriteAsync(context.Response, status, json);
 	}
 
+	private static (int Status, string Json) Login(HttpListenerResponse response, string body)
+	{
+		using var document = JsonDocument.Parse(body);
+		if (!document.RootElement.GetProperty("gpg_auth").TryGetProperty("user_token_result", out _))
+		{
+			response.AddHeader("X-GPGAuth-User-Auth-Token", Uri.EscapeDataString(TestFixtures.Read("test-message.asc")));
+			return (200, """{"header":{"status":"success"}}""");
+		}
+
+		response.AppendCookie(new Cookie("passbolt_session", "session-1", "/"));
+		response.AppendCookie(new Cookie("csrfToken", "csrf-1", "/"));
+		return (200, """{"header":{"status":"success"},"body":{}}""");
+	}
+
+	private static (int Status, string Json) Me(HttpListenerRequest request)
+		=> request.Cookies["passbolt_mfa"]?.Value == RememberedValue
+			? (200, """{"header":{"status":"success"},"body":{"id":"user-1"}}""")
+			: (403, """{"header":{"status":"error","code":403},"body":{"providers":{"totp":"/mfa/verify/totp.json"}}}""");
+
+	private (int Status, string Json) VerifyTotp(HttpListenerResponse response, string body)
+	{
+		VerifyRequests.Add(body);
+		using var document = JsonDocument.Parse(body);
+		if (document.RootElement.GetProperty("totp").GetString() != AcceptedCode)
+		{
+			return (400, """{"header":{"status":"error"}}""");
+		}
+
+		response.AppendCookie(new Cookie("passbolt_mfa", RememberedValue, "/"));
+		return (200, """{"header":{"status":"success"}}""");
+	}
 	private static async Task WriteAsync(HttpListenerResponse response, int status, string json)
 	{
 		var bytes = Encoding.UTF8.GetBytes(json);

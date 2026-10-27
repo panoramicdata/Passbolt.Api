@@ -14,16 +14,22 @@ public sealed class MfaLoginTests
 
 		public int Clears { get; private set; }
 
-		public Task<string?> LoadAsync(CancellationToken cancellationToken) => Task.FromResult(Value);
+		public Task<string?> LoadAsync(CancellationToken cancellationToken)
+		{
+			cancellationToken.ThrowIfCancellationRequested();
+			return Task.FromResult(Value);
+		}
 
 		public Task SaveAsync(string cookieValue, CancellationToken cancellationToken)
 		{
+			cancellationToken.ThrowIfCancellationRequested();
 			Value = cookieValue;
 			return Task.CompletedTask;
 		}
 
 		public Task ClearAsync(CancellationToken cancellationToken)
 		{
+			cancellationToken.ThrowIfCancellationRequested();
 			Value = null;
 			Clears++;
 			return Task.CompletedTask;

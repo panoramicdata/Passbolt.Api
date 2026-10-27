@@ -254,33 +254,44 @@ internal sealed class AuthenticatedLoggingHttpHandler : HttpClientHandler
 
 	private async Task VerifyTotpAsync(string code, CancellationToken cancellationToken)
 	{
-		var baseUri = new Uri(_options.Uri, LoginPath);
 		var remember = _options.Mfa?.RememberDevice ?? true;
 
-		using var request = new HttpRequestMessage(HttpMethod.Post, new Uri(_options.Uri, MfaVerifyTotpPath))
-		{
-			Content = JsonContent.Create(new MfaVerifyRequest { Totp = code, Remember = remember ? 1 : 0 }, options: JsonSerializerOptions)
-		};
-		request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-		if (GetCookie(baseUri, "csrfToken")?.Value is { Length: > 0 } csrfToken)
-		{
-			request.Headers.TryAddWithoutValidation("X-CSRF-Token", csrfToken);
-		}
-
+		using var request = BuildTotpVerifyRequest(code, remember);
 		using var response = await base.SendAsync(request, cancellationToken).ConfigureAwait(false);
 		if (!response.IsSuccessStatusCode)
 		{
 			throw new PassboltMfaRequiredException($"Passbolt refused the one-time code (HTTP {(int)response.StatusCode}).");
 		}
 
-		if (remember
-			&& _options.Mfa?.CookieStore is { } store
-			&& GetCookie(baseUri, MfaCookieName)?.Value is { Length: > 0 } rememberedValue)
+		if (remember)
+		{
+			await RememberDeviceAsync(cancellationToken).ConfigureAwait(false);
+		}
+	}
+
+	private HttpRequestMessage BuildTotpVerifyRequest(string code, bool remember)
+	{
+		var request = new HttpRequestMessage(HttpMethod.Post, new Uri(_options.Uri, MfaVerifyTotpPath))
+		{
+			Content = JsonContent.Create(new MfaVerifyRequest { Totp = code, Remember = remember ? 1 : 0 }, options: JsonSerializerOptions)
+		};
+		request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+		if (GetCookie(new Uri(_options.Uri, LoginPath), "csrfToken")?.Value is { Length: > 0 } csrfToken)
+		{
+			request.Headers.TryAddWithoutValidation("X-CSRF-Token", csrfToken);
+		}
+
+		return request;
+	}
+
+	private async Task RememberDeviceAsync(CancellationToken cancellationToken)
+	{
+		if (_options.Mfa?.CookieStore is { } store
+			&& GetCookie(new Uri(_options.Uri, LoginPath), MfaCookieName)?.Value is { Length: > 0 } rememberedValue)
 		{
 			await store.SaveAsync(rememberedValue, cancellationToken).ConfigureAwait(false);
 		}
 	}
-
 	private async Task RestoreRememberedMfaCookieAsync(CancellationToken cancellationToken)
 	{
 		if (_options.Mfa?.CookieStore is not { } store
