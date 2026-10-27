@@ -114,9 +114,30 @@ passbolt audit ownership --min-owners 2 --json
 | Permissions | `list --resource\|--user` |
 | Audit | `ownership` |
 
-**Not yet supported:** creating a resource, rotating a resource's secret, and sharing (which re-encrypts the secret for new recipients) all require encrypting the secret to each recipient's PGP public key. That secret-encryption capability is being added to `Passbolt.Api` first — see [issue #31](https://github.com/panoramicdata/Passbolt.Api/issues/31).
+**Library only for now:** creating a resource, rotating a resource's secret and sharing (which re-encrypt the secret for each recipient) are in the library (`PassboltClient.CreateResourceAsync`, `RotateResourceSecretAsync`, `ShareResourceAsync`, issue #31) but have no CLI command yet.
 
 Every command accepts `--server/-s`, `--username/-u`, `--password/-p`, `--private-key-file/-k`, `--config/-c` and `--json/-j`. In `--json` mode stdout carries only JSON (status text goes to stderr), so it pipes cleanly into `jq`.
+
+### Second factor (MFA)
+
+A server that requires a one-time code answers a signed-in request with a 403 that lists its providers. Give the client a `PassboltMfaOptions` and it handles that at sign-in:
+
+```csharp
+var options = new PassboltClientOptions
+{
+	Uri = new Uri("https://passbolt.example.com"),
+	Username = "user@example.com",
+	Password = passphrase,
+	PrivateKeyBlock = privateKey,
+	Mfa = new PassboltMfaOptions
+	{
+		CookieStore = myStore,                        // keeps the remembered-device cookie between runs
+		TotpProvider = ct => ReadCodeAsync(ct)         // return null when no code can be given
+	}
+};
+```
+
+A stored cookie the server accepts needs no code. Otherwise `TotpProvider` is asked once, the code is verified with remember-me (set `RememberDevice` to false to opt out) and the new cookie is saved through `IPassboltMfaCookieStore`, which you implement so the value is protected at rest (it is a bearer credential for the second factor). With no code available the client fails with `PassboltMfaRequiredException` (carried as the inner exception of Refit's `ApiRequestException`).
 
 ## Features
 
