@@ -1,3 +1,5 @@
+using Passbolt.Api.Mfa;
+
 namespace Passbolt.Api;
 
 internal sealed class AuthenticatedLoggingHttpHandler : HttpClientHandler
@@ -14,6 +16,8 @@ internal sealed class AuthenticatedLoggingHttpHandler : HttpClientHandler
 	private const string LoginPath = "/auth/login.json";
 	private const string UsersMePath = "/users/me.json";
 	private const string SessionCookieName = "passbolt_session";
+	private const string MfaCookieName = "passbolt_mfa";
+	private const string MfaVerifyTotpPath = "/mfa/verify/totp.json";
 
 	private sealed class LoginContainer
 	{
@@ -100,6 +104,8 @@ internal sealed class AuthenticatedLoggingHttpHandler : HttpClientHandler
 				return;
 			}
 
+			await RestoreRememberedMfaCookieAsync(cancellationToken).ConfigureAwait(false);
+
 			var encryptedAuthToken = await LoginStage1Async(cancellationToken).ConfigureAwait(false);
 			var userAuthToken = DecryptAuthToken(encryptedAuthToken, _options.PrivateKeyBlock, _options.Password);
 			ValidateAuthTokenFormat(userAuthToken);
@@ -113,9 +119,9 @@ internal sealed class AuthenticatedLoggingHttpHandler : HttpClientHandler
 			var baseUri = new Uri(_options.Uri, LoginPath);
 			EnsureSessionCookieExists(baseUri);
 
-			if (GetCookie(baseUri, "csrfToken") is null)
+			if (GetCookie(baseUri, "csrfToken") is null || _options.Mfa is not null)
 			{
-				await SeedCsrfCookieAsync(cancellationToken).ConfigureAwait(false);
+				await EnsureSecondFactorAsync(cancellationToken).ConfigureAwait(false);
 			}
 
 			_csrfToken = GetCookie(baseUri, "csrfToken")?.Value;
@@ -199,19 +205,104 @@ internal sealed class AuthenticatedLoggingHttpHandler : HttpClientHandler
 			?? throw new InvalidOperationException("Passbolt response did not contain a valid JSON envelope.");
 	}
 
-	private async Task SeedCsrfCookieAsync(CancellationToken cancellationToken)
+	// A signed-in request to /users/me.json seeds the CSRF cookie and shows whether the server wants a second factor.
+	private async Task<bool> ProbeForSecondFactorAsync(CancellationToken cancellationToken)
 	{
 		var meUri = new Uri(_options.Uri, UsersMePath);
 		using var request = new HttpRequestMessage(HttpMethod.Get, meUri);
 		request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-		var response = await base.SendAsync(request, cancellationToken).ConfigureAwait(false);
-		using (response)
+		using var response = await base.SendAsync(request, cancellationToken).ConfigureAwait(false);
+		if (response.StatusCode == HttpStatusCode.Forbidden
+			&& PassboltMfaChallenge.OffersTotp(await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false)))
 		{
-			response.EnsureSuccessStatusCode();
+			return true;
+		}
+
+		response.EnsureSuccessStatusCode();
+		return false;
+	}
+
+	private async Task EnsureSecondFactorAsync(CancellationToken cancellationToken)
+	{
+		if (!await ProbeForSecondFactorAsync(cancellationToken).ConfigureAwait(false))
+		{
+			return;
+		}
+
+		var mfa = _options.Mfa;
+		if (mfa?.CookieStore is { } store)
+		{
+			await store.ClearAsync(cancellationToken).ConfigureAwait(false);
+		}
+
+		var code = mfa?.TotpProvider is { } provider
+			? await provider(cancellationToken).ConfigureAwait(false)
+			: null;
+		if (string.IsNullOrWhiteSpace(code))
+		{
+			throw new PassboltMfaRequiredException("Passbolt requires a one-time code for this device and none was supplied. Sign in once interactively with a TotpProvider and RememberDevice set to remember this device.");
+		}
+
+		await VerifyTotpAsync(code.Trim(), cancellationToken).ConfigureAwait(false);
+
+		if (await ProbeForSecondFactorAsync(cancellationToken).ConfigureAwait(false))
+		{
+			throw new PassboltMfaRequiredException("Passbolt still requires a second factor after the one-time code was accepted.");
 		}
 	}
 
+	private async Task VerifyTotpAsync(string code, CancellationToken cancellationToken)
+	{
+		var baseUri = new Uri(_options.Uri, LoginPath);
+		var remember = _options.Mfa?.RememberDevice ?? true;
+
+		using var request = new HttpRequestMessage(HttpMethod.Post, new Uri(_options.Uri, MfaVerifyTotpPath))
+		{
+			Content = JsonContent.Create(new MfaVerifyRequest { Totp = code, Remember = remember ? 1 : 0 }, options: JsonSerializerOptions)
+		};
+		request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+		if (GetCookie(baseUri, "csrfToken")?.Value is { Length: > 0 } csrfToken)
+		{
+			request.Headers.TryAddWithoutValidation("X-CSRF-Token", csrfToken);
+		}
+
+		using var response = await base.SendAsync(request, cancellationToken).ConfigureAwait(false);
+		if (!response.IsSuccessStatusCode)
+		{
+			throw new PassboltMfaRequiredException($"Passbolt refused the one-time code (HTTP {(int)response.StatusCode}).");
+		}
+
+		if (remember
+			&& _options.Mfa?.CookieStore is { } store
+			&& GetCookie(baseUri, MfaCookieName)?.Value is { Length: > 0 } rememberedValue)
+		{
+			await store.SaveAsync(rememberedValue, cancellationToken).ConfigureAwait(false);
+		}
+	}
+
+	private async Task RestoreRememberedMfaCookieAsync(CancellationToken cancellationToken)
+	{
+		if (_options.Mfa?.CookieStore is not { } store
+			|| await store.LoadAsync(cancellationToken).ConfigureAwait(false) is not { Length: > 0 } value)
+		{
+			return;
+		}
+
+		_cookieContainer.Add(_options.Uri, new Cookie(MfaCookieName, value, "/", _options.Uri.Host)
+		{
+			Secure = _options.Uri.Scheme == Uri.UriSchemeHttps
+		});
+	}
+
+	private sealed class MfaVerifyRequest
+	{
+		[JsonPropertyName("totp")]
+		public required string Totp { get; init; }
+
+		[JsonPropertyName("remember")]
+		public int Remember { get; init; }
+	}
 	private void ApplyAuthenticationHeaders(HttpRequestMessage request)
 	{
 		if (!string.IsNullOrWhiteSpace(_csrfToken))

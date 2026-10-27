@@ -36,6 +36,11 @@ public sealed class PassboltClientOptions
 	public TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(30);
 
 	/// <summary>
+	/// How to satisfy a server that requires a second factor. Null means a server that asks for one fails with <see cref="Mfa.PassboltMfaRequiredException"/>.
+	/// </summary>
+	public Mfa.PassboltMfaOptions? Mfa { get; set; }
+
+	/// <summary>
 	/// Optional <see cref="HttpClient"/> instance to use for API calls. If not provided, a new instance will be created internally.
 	/// </summary>
 	public HttpClient? HttpClient { get; set; }
