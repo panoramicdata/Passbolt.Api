@@ -22,4 +22,16 @@ public abstract class IdentifiedItem
     /// </summary>
     [JsonPropertyName("modified_timestamp")]
     public DateTimeOffset? ModifiedTimestamp { get; set; }
+
+    /// <summary>
+    /// Creation time as Passbolt's REST API v2 sends it (<c>created</c>), for servers that do not send <see cref="CreatedTimestamp"/>.
+    /// </summary>
+    [JsonPropertyName("created")]
+    public DateTimeOffset? Created { get; set; }
+
+    /// <summary>
+    /// Modification time as Passbolt's REST API v2 sends it (<c>modified</c>), for servers that do not send <see cref="ModifiedTimestamp"/>.
+    /// </summary>
+    [JsonPropertyName("modified")]
+    public DateTimeOffset? Modified { get; set; }
 }
