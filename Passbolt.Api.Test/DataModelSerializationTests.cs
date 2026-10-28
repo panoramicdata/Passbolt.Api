@@ -33,6 +33,19 @@ public sealed class DataModelSerializationTests
 	}
 
 	/// <summary>
+	/// Verifies that the creation and modification times Passbolt's REST API v2 sends as <c>created</c> and <c>modified</c> are read.
+	/// </summary>
+	[Fact]
+	public void User_ReadsCreatedAndModified_AsTheServerSendsThem()
+	{
+		var user = JsonSerializer.Deserialize<User>("{\"id\":\"u1\",\"created\":\"2024-05-07T17:35:02+00:00\",\"modified\":\"2026-01-02T03:04:05+00:00\"}");
+
+		user.Should().NotBeNull();
+		user!.Created.Should().Be(new DateTimeOffset(2024, 5, 7, 17, 35, 2, TimeSpan.Zero));
+		user.Modified.Should().Be(new DateTimeOffset(2026, 1, 2, 3, 4, 5, TimeSpan.Zero));
+	}
+
+	/// <summary>
 	/// Verifies that Avatar serializes and deserializes correctly.
 	/// </summary>
 	[Fact]
