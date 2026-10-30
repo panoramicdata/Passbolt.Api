@@ -47,4 +47,28 @@ public sealed class ShareSimulationSecret
 	/// </summary>
 	[JsonPropertyName("resource_id")]
 	public string? ResourceId { get; set; }
+
+	/// <summary>
+	/// The affected user, in the nested form Passbolt's simulate endpoint returns.
+	/// </summary>
+	[JsonPropertyName("user")]
+	public ShareSimulationUser? User { get; set; }
+
+	/// <summary>
+	/// The affected user identifier, from whichever form the server sent.
+	/// </summary>
+	[JsonIgnore]
+	public string? EffectiveUserId => User?.Id ?? UserId;
+}
+
+/// <summary>
+/// The user named in a simulated share change.
+/// </summary>
+public sealed class ShareSimulationUser
+{
+	/// <summary>
+	/// The user identifier.
+	/// </summary>
+	[JsonPropertyName("id")]
+	public string? Id { get; set; }
 }

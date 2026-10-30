@@ -10,6 +10,7 @@ public interface IPassboltPermissionsApi
 	/// </summary>
 	/// <param name="cancellationToken">Cancellation token for the operation.</param>
 	/// <returns>A response containing a collection of permissions.</returns>
+	[Obsolete("Passbolt serves no /permissions.json endpoint: this always returns 404. List a resource's permissions with GetByResourceAsync.")]
 	[Get("/permissions.json")]
 	Task<Response<IReadOnlyList<Permission>>> GetAllAsync(
 		CancellationToken cancellationToken);
@@ -31,7 +32,7 @@ public interface IPassboltPermissionsApi
 	/// <param name="resourceId">The ID of the resource.</param>
 	/// <param name="cancellationToken">Cancellation token for the operation.</param>
 	/// <returns>A response containing a collection of permissions for the resource.</returns>
-	[Get("/permissions?filter[resource_id]={resourceId}")]
+	[Get("/permissions/resource/{resourceId}.json")]
 	Task<Response<IReadOnlyList<Permission>>> GetByResourceAsync(
 		string resourceId,
 		CancellationToken cancellationToken);
@@ -42,6 +43,7 @@ public interface IPassboltPermissionsApi
 	/// <param name="userId">The ID of the user.</param>
 	/// <param name="cancellationToken">Cancellation token for the operation.</param>
 	/// <returns>A response containing a collection of permissions for the user.</returns>
+	[Obsolete("Passbolt has no per-user permissions endpoint: this always returns 404. List a resource's permissions with GetByResourceAsync.")]
 	[Get("/permissions?filter[user_id]={userId}")]
 	Task<Response<IReadOnlyList<Permission>>> GetByUserAsync(
 		string userId,

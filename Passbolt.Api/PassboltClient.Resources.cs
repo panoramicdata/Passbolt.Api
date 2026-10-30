@@ -215,7 +215,7 @@ public sealed partial class PassboltClient
 
 	private static List<string> ExtractUserIds(IEnumerable<ShareSimulationSecret>? changes)
 		=> changes?
-			.Select(c => c.UserId)
+			.Select(c => c.EffectiveUserId)
 			.Where(id => !string.IsNullOrEmpty(id))
 			.Select(id => id!)
 			.Distinct()

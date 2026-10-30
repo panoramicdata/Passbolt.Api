@@ -19,7 +19,7 @@ public interface IPassboltGroupsApi
 	/// <param name="groupId">The ID of the group to retrieve.</param>
 	/// <param name="cancellationToken">Cancellation token for the operation.</param>
 	/// <returns>A task containing the group.</returns>
-	[Get("/groups/{groupId}.json")]
+	[Get("/groups/{groupId}.json?contain[user]=1&contain[group_user]=1")]
 	Task<Response<Group>> GetAsync(
 		string groupId,
 		CancellationToken cancellationToken);
