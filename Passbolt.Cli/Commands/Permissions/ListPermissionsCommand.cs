@@ -8,9 +8,7 @@ public sealed class ListPermissionsCommand : AsyncCommand<PermissionListSettings
 		using var client = await ClientFactory.CreateAsync(settings, cancellationToken);
 		using var cts = CommandCancellation.WithTimeout(cancellationToken, TimeSpan.FromSeconds(30));
 
-		var permissions = string.IsNullOrWhiteSpace(settings.ResourceId)
-			? (await client.Permissions.GetByUserAsync(settings.UserId!, cts.Token)).Value
-			: (await client.Permissions.GetByResourceAsync(settings.ResourceId!, cts.Token)).Value;
+		var permissions = (await client.Permissions.GetByResourceAsync(settings.ResourceId!, cts.Token)).Value;
 
 		if (settings.Json)
 		{
