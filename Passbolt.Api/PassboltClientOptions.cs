@@ -44,4 +44,9 @@ public sealed class PassboltClientOptions
 	/// Optional <see cref="HttpClient"/> instance to use for API calls. If not provided, a new instance will be created internally.
 	/// </summary>
 	public HttpClient? HttpClient { get; set; }
+
+	/// <summary>
+	/// When true, the client refuses every request that would change the server, before sending it.
+	/// </summary>
+	public bool IsReadOnly { get; set; }
 }
