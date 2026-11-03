@@ -20,11 +20,24 @@ public sealed class ReadOnlyOptionTests
 
 	private sealed class RememberedStore : IPassboltMfaCookieStore
 	{
-		public Task<string?> LoadAsync(CancellationToken cancellationToken) => Task.FromResult<string?>(FakePassboltServer.RememberedValue);
+		public Task<string?> LoadAsync(CancellationToken cancellationToken)
+		{
+			cancellationToken.ThrowIfCancellationRequested();
+			return Task.FromResult<string?>(FakePassboltServer.RememberedValue);
+		}
 
-		public Task SaveAsync(string cookieValue, CancellationToken cancellationToken) => Task.CompletedTask;
+		public Task SaveAsync(string cookieValue, CancellationToken cancellationToken)
+		{
+			ArgumentNullException.ThrowIfNull(cookieValue);
+			cancellationToken.ThrowIfCancellationRequested();
+			return Task.CompletedTask;
+		}
 
-		public Task ClearAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+		public Task ClearAsync(CancellationToken cancellationToken)
+		{
+			cancellationToken.ThrowIfCancellationRequested();
+			return Task.CompletedTask;
+		}
 	}
 
 	private static bool IsRefused(Exception e)
