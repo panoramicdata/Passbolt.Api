@@ -18,6 +18,7 @@ internal sealed class AuthenticatedLoggingHttpHandler : HttpClientHandler
 	private const string SessionCookieName = "passbolt_session";
 	private const string MfaCookieName = "passbolt_mfa";
 	private const string MfaVerifyTotpPath = "/mfa/verify/totp.json";
+	private const string ShareSimulatePathPrefix = "/share/simulate/";
 
 	private sealed class LoginContainer
 	{
@@ -69,6 +70,11 @@ internal sealed class AuthenticatedLoggingHttpHandler : HttpClientHandler
 		HttpRequestMessage request,
 		CancellationToken cancellationToken)
 	{
+		if (_options.IsReadOnly && ChangesServer(request))
+		{
+			throw new InvalidOperationException($"The client is read-only; {request.Method} {request.RequestUri?.AbsolutePath} would change the server.");
+		}
+
 		var logPrefix = $"Request {Guid.NewGuid()}: ";
 
 		await EnsureAuthenticatedAsync(cancellationToken).ConfigureAwait(false);
@@ -88,6 +94,13 @@ internal sealed class AuthenticatedLoggingHttpHandler : HttpClientHandler
 
 		return response;
 	}
+
+	// A share simulation is a POST that only reports what a share would do, so it is allowed by path.
+	private static bool ChangesServer(HttpRequestMessage request)
+		=> request.Method != HttpMethod.Get
+			&& request.Method != HttpMethod.Head
+			&& request.Method != HttpMethod.Options
+			&& request.RequestUri?.AbsolutePath.StartsWith(ShareSimulatePathPrefix, StringComparison.OrdinalIgnoreCase) != true;
 
 	private async Task EnsureAuthenticatedAsync(CancellationToken cancellationToken)
 	{
