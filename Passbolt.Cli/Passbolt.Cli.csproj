@@ -1,48 +1,43 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
-
-	<PropertyGroup>
-		<OutputType>Exe</OutputType>
-		<TargetFramework>net10.0</TargetFramework>
-		<ImplicitUsings>enable</ImplicitUsings>
-		<Nullable>enable</Nullable>
-		<RootNamespace>Passbolt.Cli</RootNamespace>
-		<NeutralResourcesLanguage>en</NeutralResourcesLanguage>
-		<InvariantGlobalization>true</InvariantGlobalization>
-		<!-- This is an application, not a library API surface, so we do not require XML docs on every
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net11.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>Passbolt.Cli</RootNamespace>
+    <NeutralResourcesLanguage>en</NeutralResourcesLanguage>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <!-- This is an application, not a library API surface, so we do not require XML docs on every
 		     command type (which TreatWarningsAsErrors would otherwise turn into CS1591 build errors). -->
-		<GenerateDocumentationFile>false</GenerateDocumentationFile>
-
-		<!-- Distributable as a .NET global tool: dotnet tool install -g Passbolt.Cli -->
-		<PackAsTool>true</PackAsTool>
-		<ToolCommandName>passbolt</ToolCommandName>
-		<PackageId>Passbolt.Cli</PackageId>
-		<Owners>Panoramic Data Limited</Owners>
-		<PackageProjectUrl>https://github.com/panoramicdata/Passbolt.Api</PackageProjectUrl>
-		<RepositoryUrl>https://github.com/panoramicdata/Passbolt.Api</RepositoryUrl>
-		<RepositoryType>git</RepositoryType>
-		<PackageLicenseExpression>MIT</PackageLicenseExpression>
-		<PackageIcon>Logo.png</PackageIcon>
-		<Description>Cross-platform command-line client for the Passbolt password manager, built on the Passbolt.Api .NET client. Installable as a .NET global tool (dotnet tool install -g Passbolt.Cli). Read, list and audit Passbolt resources, users, groups, folders and permissions — including an ownership audit that flags resources with fewer than two owners or no group owner. Community-maintained by Panoramic Data Limited; not affiliated with, endorsed by, or sponsored by Passbolt S.A. Passbolt and the Passbolt logo are registered trademarks of Passbolt S.A.</Description>
-		<PackageTags>passbolt;cli;dotnet-tool;password-manager;security;audit;PanoramicData</PackageTags>
-		<PackageReadmeFile>README.md</PackageReadmeFile>
-		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-		<IncludeSymbols>true</IncludeSymbols>
-		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
-	</PropertyGroup>
-
-	<ItemGroup>
-		<PackageReference Include="Nerdbank.GitVersioning" PrivateAssets="all" />
-		<PackageReference Include="Spectre.Console" />
-		<PackageReference Include="Spectre.Console.Cli" />
-	</ItemGroup>
-
-	<ItemGroup>
-		<ProjectReference Include="..\Passbolt.Api\Passbolt.Api.csproj" />
-	</ItemGroup>
-
-	<ItemGroup>
-		<None Include="..\Passbolt.Api\Logo.png" Link="Logo.png" Pack="true" PackagePath="" />
-		<None Include="..\README.md" Link="README.md" Pack="true" PackagePath="" />
-	</ItemGroup>
-
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <!-- Distributable as a .NET global tool: dotnet tool install -g Passbolt.Cli -->
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>passbolt</ToolCommandName>
+    <PackageId>Passbolt.Cli</PackageId>
+    <Owners>Panoramic Data Limited</Owners>
+    <PackageProjectUrl>https://github.com/panoramicdata/Passbolt.Api</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/panoramicdata/Passbolt.Api</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageIcon>Logo.png</PackageIcon>
+    <Description>Cross-platform command-line client for the Passbolt password manager, built on the Passbolt.Api .NET client. Installable as a .NET global tool (dotnet tool install -g Passbolt.Cli). Read, list and audit Passbolt resources, users, groups, folders and permissions — including an ownership audit that flags resources with fewer than two owners or no group owner. Community-maintained by Panoramic Data Limited; not affiliated with, endorsed by, or sponsored by Passbolt S.A. Passbolt and the Passbolt logo are registered trademarks of Passbolt S.A.</Description>
+    <PackageTags>passbolt;cli;dotnet-tool;password-manager;security;audit;PanoramicData</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Nerdbank.GitVersioning" PrivateAssets="all" />
+    <PackageReference Include="Spectre.Console" />
+    <PackageReference Include="Spectre.Console.Cli" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Passbolt.Api\Passbolt.Api.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\Passbolt.Api\Logo.png" Link="Logo.png" Pack="true" PackagePath="" />
+    <None Include="..\README.md" Link="README.md" Pack="true" PackagePath="" />
+  </ItemGroup>
 </Project>
