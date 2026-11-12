@@ -53,6 +53,26 @@ public abstract class TestBase : TestBed<Fixture>
 			"Set Passbolt:Username, Passbolt:Password, and Passbolt:PrivateKeyBlock in user secrets to run authenticated integration tests.");
 
 	/// <summary>
+	/// Asserts that a response and its header are present, and returns the response.
+	/// </summary>
+	protected static Response<T> AssertEnvelope<T>(Response<T> response)
+	{
+		response.Should().NotBeNull();
+		response.Header.Should().NotBeNull();
+		return response;
+	}
+
+	/// <summary>
+	/// Asserts that a response, its header and its value are present, and returns the value.
+	/// </summary>
+	protected static T AssertEnvelopeValue<T>(Response<T> response)
+	{
+		var value = AssertEnvelope(response).Value;
+		value.Should().NotBeNull();
+		return value;
+	}
+
+	/// <summary>
 	/// Returns true, after logging why, when mutating integration tests are switched off.
 	/// </summary>
 	/// <param name="area">The entity the lifecycle test covers, for the log line.</param>

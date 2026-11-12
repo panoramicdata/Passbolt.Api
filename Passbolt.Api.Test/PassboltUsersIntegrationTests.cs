@@ -22,10 +22,7 @@ public sealed class PassboltUsersIntegrationTests(ITestOutputHelper testOutputHe
 			.Users
 			.GetAllAsync(CancellationToken);
 
-		response.Should().NotBeNull();
-		response.Header.Should().NotBeNull();
-		response.Value.Should().NotBeNull();
-		response.Value.Should().NotBeEmpty();
+		AssertEnvelopeValue(response).Should().NotBeEmpty();
 	}
 
 	/// <summary>
@@ -41,10 +38,7 @@ public sealed class PassboltUsersIntegrationTests(ITestOutputHelper testOutputHe
 			.Users
 			.GetAsync(currentUser.Id!, CancellationToken);
 
-		response.Should().NotBeNull();
-		response.Header.Should().NotBeNull();
-		response.Value.Should().NotBeNull();
-		response.Value.Id.Should().Be(currentUser.Id);
+		AssertEnvelopeValue(response).Id.Should().Be(currentUser.Id);
 	}
 
 	/// <summary>
@@ -72,10 +66,7 @@ public sealed class PassboltUsersIntegrationTests(ITestOutputHelper testOutputHe
 			.Users
 			.UpdateAsync(currentUser.Id!, updateRequest, CancellationToken);
 
-		updated.Should().NotBeNull();
-		updated.Header.Should().NotBeNull();
-		updated.Value.Should().NotBeNull();
-		updated.Value.Id.Should().Be(currentUser.Id);
+		AssertEnvelopeValue(updated).Id.Should().Be(currentUser.Id);
 	}
 
 	/// <summary>

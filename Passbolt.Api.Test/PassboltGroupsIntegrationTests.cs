@@ -16,8 +16,7 @@ public sealed class PassboltGroupsIntegrationTests(ITestOutputHelper testOutputH
 	{
 		var response = await Client.Groups.ListAsync(CancellationToken);
 
-		response.Should().NotBeNull();
-		response.Header.Should().NotBeNull();
+		AssertEnvelope(response);
 	}
 
 	/// <summary>
@@ -32,10 +31,7 @@ public sealed class PassboltGroupsIntegrationTests(ITestOutputHelper testOutputH
 		{
 			var response = await Client.Groups.GetAsync(createdGroupId, CancellationToken);
 
-			response.Should().NotBeNull();
-			response.Header.Should().NotBeNull();
-			response.Value.Should().NotBeNull();
-			response.Value.Id.Should().Be(createdGroupId);
+			AssertEnvelopeValue(response).Id.Should().Be(createdGroupId);
 		}
 		finally
 		{

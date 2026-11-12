@@ -6,15 +6,36 @@ public static class CommandRunner
 	private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(30);
 
 	/// <summary>
-	/// Fetches a value with a connected client and writes it as JSON (or the result of
-	/// <paramref name="jsonShape"/>) in JSON mode, otherwise renders it with <paramref name="renderTable"/>.
+	/// Fetches a value with a connected client and writes it as JSON in JSON mode,
+	/// otherwise renders it with <paramref name="renderTable"/>.
 	/// </summary>
-	public static async Task<int> RunAsync<T>(
+	public static Task<int> RunAsync<T>(
+		ConnectionSettings settings,
+		CancellationToken cancellationToken,
+		Func<PassboltClient, CancellationToken, Task<T>> fetch,
+		Action<T> renderTable)
+		=> RunCoreAsync(settings, cancellationToken, fetch, renderTable, null);
+
+	/// <summary>
+	/// As the overload without a shape, but writes the result of <paramref name="jsonShape"/> in JSON mode.
+	/// </summary>
+	public static Task<int> RunAsync<T>(
 		ConnectionSettings settings,
 		CancellationToken cancellationToken,
 		Func<PassboltClient, CancellationToken, Task<T>> fetch,
 		Action<T> renderTable,
-		Func<T, object>? jsonShape = null)
+		Func<T, object> jsonShape)
+	{
+		ArgumentNullException.ThrowIfNull(jsonShape);
+		return RunCoreAsync(settings, cancellationToken, fetch, renderTable, jsonShape);
+	}
+
+	private static async Task<int> RunCoreAsync<T>(
+		ConnectionSettings settings,
+		CancellationToken cancellationToken,
+		Func<PassboltClient, CancellationToken, Task<T>> fetch,
+		Action<T> renderTable,
+		Func<T, object>? jsonShape)
 	{
 		ArgumentNullException.ThrowIfNull(settings);
 		ArgumentNullException.ThrowIfNull(fetch);

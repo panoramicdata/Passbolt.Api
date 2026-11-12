@@ -49,7 +49,7 @@ public sealed class MfaLoginTests
 	private static PassboltClient ClientWith(FakePassboltServer server, IPassboltMfaCookieStore store, Func<CancellationToken, Task<string?>>? totpProvider, bool rememberDevice = true)
 		=> ClientFor(server, new PassboltMfaOptions { CookieStore = store, TotpProvider = totpProvider, RememberDevice = rememberDevice });
 
-	private static Func<CancellationToken, Task<string?>> Code(string? code) => _ => Task.FromResult(code);
+	private static Func<CancellationToken, Task<string?>> Code(string? value) => _ => Task.FromResult(value);
 
 	private static Task SignInAsync(PassboltClient client) => client.Me.GetAsync(TestContext.Current.CancellationToken);
 
