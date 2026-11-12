@@ -9,7 +9,7 @@ namespace Passbolt.Api.Cryptography;
 /// Passbolt stores each secret as an ASCII-armored OpenPGP message encrypted to a recipient's
 /// public key; when a secret is shared or rotated it must be re-encrypted once per recipient.
 /// </summary>
-public static class PassboltPgp
+public static partial class PassboltPgp
 {
 	private const int BufferSize = 1 << 16;
 
@@ -27,14 +27,11 @@ public static class PassboltPgp
 
 		using var encryptedInput = new MemoryStream(Encoding.UTF8.GetBytes(armoredMessage));
 		using var decoderStream = PgpUtilities.GetDecoderStream(encryptedInput);
-		var factory = new PgpObjectFactory(decoderStream);
-		var encryptedDataList = factory.NextPgpObject() as PgpEncryptedDataList
-			?? factory.NextPgpObject() as PgpEncryptedDataList
-			?? throw new InvalidOperationException("Failed to parse the encrypted OpenPGP message.");
+		var encryptedDataList = ReadEncryptedDataList(decoderStream, "Failed to parse the encrypted OpenPGP message.");
 
 		var bundle = ReadSecretKeyBundle(privateKeyArmored);
 		using var clearStream = GetDecryptedStream(encryptedDataList, bundle, passphrase ?? string.Empty);
-		return ExtractLiteralData(clearStream);
+		return ExtractLiteralData(clearStream, "The OpenPGP message", "The OpenPGP message contained an unsupported payload type");
 	}
 
 	/// <summary>
@@ -108,83 +105,6 @@ public static class PassboltPgp
 		return Encoding.ASCII.GetString(armoredOutput.ToArray());
 	}
 
-	/// <summary>
-	/// Extracts the ASCII-armored public key from an ASCII-armored private key. Used to encrypt a
-	/// secret to the current user when creating a personal resource.
-	/// </summary>
-	/// <param name="privateKeyArmored">The ASCII-armored private key.</param>
-	/// <returns>The ASCII-armored public key.</returns>
-	public static string ExtractPublicKey(string privateKeyArmored)
-	{
-		ArgumentNullException.ThrowIfNull(privateKeyArmored);
-
-		var bundle = ReadSecretKeyBundle(privateKeyArmored);
-		foreach (PgpSecretKeyRing ring in bundle.GetKeyRings())
-		{
-			using var armoredOutput = new MemoryStream();
-			using (var armorStream = new ArmoredOutputStream(armoredOutput))
-			{
-				ring.GetPublicKey().PublicKeyPacket.Encode(new BcpgOutputStream(armorStream));
-			}
-
-			return Encoding.ASCII.GetString(armoredOutput.ToArray());
-		}
-
-		throw new InvalidOperationException("The private key did not contain a key ring.");
-	}
-
-	private static PgpSecretKeyRingBundle ReadSecretKeyBundle(string privateKeyArmored)
-	{
-		using var keyStream = new MemoryStream(Encoding.UTF8.GetBytes(privateKeyArmored));
-		using var decoderStream = PgpUtilities.GetDecoderStream(keyStream);
-		return new PgpSecretKeyRingBundle(decoderStream);
-	}
-
-	private static PgpSecretKey FindSigningSecretKey(PgpSecretKeyRingBundle bundle)
-	{
-		foreach (PgpSecretKeyRing ring in bundle.GetKeyRings())
-		{
-			foreach (PgpSecretKey secretKey in ring.GetSecretKeys())
-			{
-				if (secretKey.IsSigningKey)
-				{
-					return secretKey;
-				}
-			}
-		}
-
-		throw new InvalidOperationException("The private key did not contain a signing-capable key.");
-	}
-
-	private static PgpPublicKey FindEncryptionKey(string publicKeyArmored)
-	{
-		using var keyStream = new MemoryStream(Encoding.UTF8.GetBytes(publicKeyArmored));
-		using var decoderStream = PgpUtilities.GetDecoderStream(keyStream);
-		var bundle = new PgpPublicKeyRingBundle(decoderStream);
-
-		PgpPublicKey? fallback = null;
-		foreach (PgpPublicKeyRing ring in bundle.GetKeyRings())
-		{
-			foreach (PgpPublicKey publicKey in ring.GetPublicKeys())
-			{
-				if (!publicKey.IsEncryptionKey || publicKey.HasRevocation())
-				{
-					continue;
-				}
-
-				// Prefer a dedicated encryption subkey over the master key.
-				if (!publicKey.IsMasterKey)
-				{
-					return publicKey;
-				}
-
-				fallback ??= publicKey;
-			}
-		}
-
-		return fallback ?? throw new InvalidOperationException("The recipient public key has no encryption-capable key.");
-	}
-
 	private static Stream GetDecryptedStream(PgpEncryptedDataList encryptedDataList, PgpSecretKeyRingBundle bundle, string passphrase)
 	{
 		foreach (var encryptedData in encryptedDataList.GetEncryptedDataObjects().OfType<PgpPublicKeyEncryptedData>())
@@ -200,48 +120,5 @@ public static class PassboltPgp
 		}
 
 		throw new InvalidOperationException("No matching private key was found to decrypt the OpenPGP message.");
-	}
-
-	private static string ExtractLiteralData(Stream clearStream)
-	{
-		var factory = new PgpObjectFactory(clearStream);
-		var pgpObject = factory.NextPgpObject();
-
-		// A compressed message reads its literal packet lazily from the decompression stream, so
-		// that stream must remain open until the literal has been fully read.
-		Stream? decompressedStream = null;
-		try
-		{
-			if (pgpObject is PgpCompressedData compressedData)
-			{
-				decompressedStream = compressedData.GetDataStream();
-				factory = new PgpObjectFactory(decompressedStream);
-				pgpObject = factory.NextPgpObject();
-			}
-
-			while (pgpObject is not null and not PgpLiteralData)
-			{
-				if (pgpObject is PgpOnePassSignatureList or PgpSignatureList or PgpMarker)
-				{
-					pgpObject = factory.NextPgpObject();
-					continue;
-				}
-
-				throw new InvalidOperationException($"The OpenPGP message contained an unsupported payload type {pgpObject.GetType().Name}.");
-			}
-
-			if (pgpObject is not PgpLiteralData literalData)
-			{
-				throw new InvalidOperationException("The OpenPGP message did not contain a literal data packet.");
-			}
-
-			using var literalStream = literalData.GetInputStream();
-			using var reader = new StreamReader(literalStream, Encoding.UTF8);
-			return reader.ReadToEnd();
-		}
-		finally
-		{
-			decompressedStream?.Dispose();
-		}
 	}
 }

@@ -3,25 +3,16 @@ namespace Passbolt.Cli.Commands.Groups;
 /// <summary>Gets a single group by id, including its members.</summary>
 public sealed class GetGroupCommand : AsyncCommand<IdSettings>
 {
-	public override async Task<int> ExecuteAsync(CommandContext context, IdSettings settings, CancellationToken cancellationToken)
+	public override Task<int> ExecuteAsync(CommandContext context, IdSettings settings, CancellationToken cancellationToken)
+		=> CommandRunner.RunAsync(settings, cancellationToken, async (client, token) => (await client.Groups.GetAsync(settings.Id, token)).Value, RenderTable);
+
+	private static void RenderTable(Group group)
 	{
-		using var client = await ClientFactory.CreateAsync(settings, cancellationToken);
-		using var cts = CommandCancellation.WithTimeout(cancellationToken, TimeSpan.FromSeconds(30));
-
-		var group = (await client.Groups.GetAsync(settings.Id, cts.Token)).Value;
-
-		if (settings.Json)
-		{
-			Output.Json(group);
-			return 0;
-		}
-
 		var table = Output.TableBase();
 		table.AddRow("Id", Output.Cell(group.Id));
 		table.AddRow("Name", Output.Cell(group.Name));
 		table.AddRow("Description", Output.Cell(group.Description));
 		table.AddRow("User count", group.UserCount.ToString());
 		Output.Table(table);
-		return 0;
 	}
 }

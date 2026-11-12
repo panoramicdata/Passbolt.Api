@@ -3,32 +3,12 @@ namespace Passbolt.Cli.Commands.Folders;
 /// <summary>Lists all folders.</summary>
 public sealed class ListFoldersCommand : AsyncCommand<ConnectionSettings>
 {
-	public override async Task<int> ExecuteAsync(CommandContext context, ConnectionSettings settings, CancellationToken cancellationToken)
-	{
-		using var client = await ClientFactory.CreateAsync(settings, cancellationToken);
-		using var cts = CommandCancellation.WithTimeout(cancellationToken, TimeSpan.FromSeconds(30));
-
-		var folders = (await client.Folders.ListFoldersAsync(cts.Token)).Value;
-
-		if (settings.Json)
-		{
-			Output.Json(folders);
-		}
-		else
-		{
-			WriteFoldersTable(folders);
-		}
-
-		return 0;
-	}
+	public override Task<int> ExecuteAsync(CommandContext context, ConnectionSettings settings, CancellationToken cancellationToken)
+		=> CommandRunner.RunAsync(settings, cancellationToken, async (client, token) => (await client.Folders.ListFoldersAsync(token)).Value, WriteFoldersTable);
 
 	private static void WriteFoldersTable(IReadOnlyList<Folder> folders)
 	{
-		var table = new Table().Border(TableBorder.Rounded);
-		table.AddColumn("Id");
-		table.AddColumn("Name");
-		table.AddColumn("Personal");
-		table.AddColumn("Parent");
+		var table = Output.Grid("Id", "Name", "Personal", "Parent");
 		foreach (var folder in folders)
 		{
 			table.AddRow(

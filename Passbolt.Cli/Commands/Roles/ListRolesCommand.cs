@@ -3,31 +3,12 @@ namespace Passbolt.Cli.Commands.Roles;
 /// <summary>Lists available roles (useful for the --role-id on 'user create').</summary>
 public sealed class ListRolesCommand : AsyncCommand<ConnectionSettings>
 {
-	public override async Task<int> ExecuteAsync(CommandContext context, ConnectionSettings settings, CancellationToken cancellationToken)
-	{
-		using var client = await ClientFactory.CreateAsync(settings, cancellationToken);
-		using var cts = CommandCancellation.WithTimeout(cancellationToken, TimeSpan.FromSeconds(30));
-
-		var roles = (await client.Roles.GetAllAsync(cts.Token)).Value;
-
-		if (settings.Json)
-		{
-			Output.Json(roles);
-		}
-		else
-		{
-			WriteRolesTable(roles);
-		}
-
-		return 0;
-	}
+	public override Task<int> ExecuteAsync(CommandContext context, ConnectionSettings settings, CancellationToken cancellationToken)
+		=> CommandRunner.RunAsync(settings, cancellationToken, async (client, token) => (await client.Roles.GetAllAsync(token)).Value, WriteRolesTable);
 
 	private static void WriteRolesTable(IReadOnlyList<Role> roles)
 	{
-		var table = new Table().Border(TableBorder.Rounded);
-		table.AddColumn("Id");
-		table.AddColumn("Name");
-		table.AddColumn("Description");
+		var table = Output.Grid("Id", "Name", "Description");
 		foreach (var role in roles)
 		{
 			table.AddRow(Output.Cell(role.Id), Output.Cell(role.Name), Output.Cell(role.Description));

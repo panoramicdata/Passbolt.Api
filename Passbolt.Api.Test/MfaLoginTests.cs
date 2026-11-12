@@ -46,7 +46,19 @@ public sealed class MfaLoginTests
 			Mfa = mfa
 		});
 
+	private static PassboltClient ClientWith(FakePassboltServer server, IPassboltMfaCookieStore store, Func<CancellationToken, Task<string?>>? totpProvider, bool rememberDevice = true)
+		=> ClientFor(server, new PassboltMfaOptions { CookieStore = store, TotpProvider = totpProvider, RememberDevice = rememberDevice });
+
+	private static Func<CancellationToken, Task<string?>> Code(string? code) => _ => Task.FromResult(code);
+
 	private static Task SignInAsync(PassboltClient client) => client.Me.GetAsync(TestContext.Current.CancellationToken);
+
+	private static async Task<PassboltMfaRequiredException> MfaFailureAsync(PassboltClient client)
+	{
+		var act = () => SignInAsync(client);
+		var thrown = await act.Should().ThrowAsync<Refit.ApiRequestException>();
+		return thrown.Which.InnerException.Should().BeOfType<PassboltMfaRequiredException>().Which;
+	}
 
 	/// <summary>A stored remembered-device cookie that the server accepts needs no code.</summary>
 	[Fact]
@@ -55,11 +67,7 @@ public sealed class MfaLoginTests
 		await using var server = await FakePassboltServer.StartAsync();
 		var asked = 0;
 		var store = new MemoryCookieStore(FakePassboltServer.RememberedValue);
-		using var client = ClientFor(server, new PassboltMfaOptions
-		{
-			CookieStore = store,
-			TotpProvider = _ => { asked++; return Task.FromResult<string?>(FakePassboltServer.AcceptedCode); }
-		});
+		using var client = ClientWith(server, store, _ => { asked++; return Task.FromResult<string?>(FakePassboltServer.AcceptedCode); });
 
 		await SignInAsync(client);
 
@@ -74,11 +82,7 @@ public sealed class MfaLoginTests
 	{
 		await using var server = await FakePassboltServer.StartAsync();
 		var store = new MemoryCookieStore();
-		using var client = ClientFor(server, new PassboltMfaOptions
-		{
-			CookieStore = store,
-			TotpProvider = _ => Task.FromResult<string?>(" " + FakePassboltServer.AcceptedCode + " ")
-		});
+		using var client = ClientWith(server, store, Code(" " + FakePassboltServer.AcceptedCode + " "));
 
 		await SignInAsync(client);
 
@@ -92,11 +96,7 @@ public sealed class MfaLoginTests
 	{
 		await using var server = await FakePassboltServer.StartAsync();
 		var store = new MemoryCookieStore("expired-device");
-		using var client = ClientFor(server, new PassboltMfaOptions
-		{
-			CookieStore = store,
-			TotpProvider = _ => Task.FromResult<string?>(FakePassboltServer.AcceptedCode)
-		});
+		using var client = ClientWith(server, store, Code(FakePassboltServer.AcceptedCode));
 
 		await SignInAsync(client);
 
@@ -110,11 +110,9 @@ public sealed class MfaLoginTests
 	public async Task NoCodeAvailable_FailsWithTheMfaException_WithoutCallingVerify()
 	{
 		await using var server = await FakePassboltServer.StartAsync();
-		using var client = ClientFor(server, new PassboltMfaOptions { CookieStore = new MemoryCookieStore(), TotpProvider = _ => Task.FromResult<string?>(null) });
+		using var client = ClientWith(server, new MemoryCookieStore(), Code(null));
 
-		var act = () => SignInAsync(client);
-
-		(await act.Should().ThrowAsync<Refit.ApiRequestException>()).Which.InnerException.Should().BeOfType<PassboltMfaRequiredException>().Which.Message.Should().Contain("one-time code");
+		(await MfaFailureAsync(client)).Message.Should().Contain("one-time code");
 		server.VerifyRequests.Should().BeEmpty();
 	}
 
@@ -125,9 +123,7 @@ public sealed class MfaLoginTests
 		await using var server = await FakePassboltServer.StartAsync();
 		using var client = ClientFor(server, new PassboltMfaOptions());
 
-		var act = () => SignInAsync(client);
-
-		(await act.Should().ThrowAsync<Refit.ApiRequestException>()).Which.InnerException.Should().BeOfType<PassboltMfaRequiredException>();
+		await MfaFailureAsync(client);
 	}
 
 	/// <summary>A code the server refuses fails with the MFA exception and stores nothing.</summary>
@@ -136,11 +132,9 @@ public sealed class MfaLoginTests
 	{
 		await using var server = await FakePassboltServer.StartAsync();
 		var store = new MemoryCookieStore();
-		using var client = ClientFor(server, new PassboltMfaOptions { CookieStore = store, TotpProvider = _ => Task.FromResult<string?>("000000") });
+		using var client = ClientWith(server, store, Code("000000"));
 
-		var act = () => SignInAsync(client);
-
-		(await act.Should().ThrowAsync<Refit.ApiRequestException>()).Which.InnerException.Should().BeOfType<PassboltMfaRequiredException>().Which.Message.Should().Contain("refused");
+		(await MfaFailureAsync(client)).Message.Should().Contain("refused");
 		store.Value.Should().BeNull();
 	}
 
@@ -150,12 +144,7 @@ public sealed class MfaLoginTests
 	{
 		await using var server = await FakePassboltServer.StartAsync();
 		var store = new MemoryCookieStore();
-		using var client = ClientFor(server, new PassboltMfaOptions
-		{
-			CookieStore = store,
-			RememberDevice = false,
-			TotpProvider = _ => Task.FromResult<string?>(FakePassboltServer.AcceptedCode)
-		});
+		using var client = ClientWith(server, store, Code(FakePassboltServer.AcceptedCode), rememberDevice: false);
 
 		await SignInAsync(client);
 

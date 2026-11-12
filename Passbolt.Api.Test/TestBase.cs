@@ -53,6 +53,21 @@ public abstract class TestBase : TestBed<Fixture>
 			"Set Passbolt:Username, Passbolt:Password, and Passbolt:PrivateKeyBlock in user secrets to run authenticated integration tests.");
 
 	/// <summary>
+	/// Returns true, after logging why, when mutating integration tests are switched off.
+	/// </summary>
+	/// <param name="area">The entity the lifecycle test covers, for the log line.</param>
+	protected bool MutatingTestsDisabled(string area)
+	{
+		if (Settings.RunMutatingIntegrationTests)
+		{
+			return false;
+		}
+
+		TestOutputHelper.WriteLine($"Skipping mutating {area} lifecycle test because Passbolt:RunMutatingIntegrationTests is false.");
+		return true;
+	}
+
+	/// <summary>
 	/// Ensures the shared integration test folder exists and returns its identifier.
 	/// </summary>
 	/// <returns>The folder identifier for the shared integration test folder.</returns>

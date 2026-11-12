@@ -3,32 +3,12 @@ namespace Passbolt.Cli.Commands.Resources;
 /// <summary>Lists all resources visible to the authenticated user.</summary>
 public sealed class ListResourcesCommand : AsyncCommand<ConnectionSettings>
 {
-	public override async Task<int> ExecuteAsync(CommandContext context, ConnectionSettings settings, CancellationToken cancellationToken)
-	{
-		using var client = await ClientFactory.CreateAsync(settings, cancellationToken);
-		using var cts = CommandCancellation.WithTimeout(cancellationToken, TimeSpan.FromSeconds(30));
-
-		var resources = (await client.Resources.GetAllAsync(cts.Token)).Value;
-
-		if (settings.Json)
-		{
-			Output.Json(resources);
-		}
-		else
-		{
-			WriteResourcesTable(resources);
-		}
-
-		return 0;
-	}
+	public override Task<int> ExecuteAsync(CommandContext context, ConnectionSettings settings, CancellationToken cancellationToken)
+		=> CommandRunner.RunAsync(settings, cancellationToken, async (client, token) => (await client.Resources.GetAllAsync(token)).Value, WriteResourcesTable);
 
 	private static void WriteResourcesTable(IReadOnlyList<Resource> resources)
 	{
-		var table = new Table().Border(TableBorder.Rounded);
-		table.AddColumn("Id");
-		table.AddColumn("Name");
-		table.AddColumn("Username");
-		table.AddColumn("URI");
+		var table = Output.Grid("Id", "Name", "Username", "URI");
 		foreach (var resource in resources)
 		{
 			table.AddRow(

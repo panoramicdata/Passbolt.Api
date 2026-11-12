@@ -1,6 +1,5 @@
-using Org.BouncyCastle.Bcpg;
 using Org.BouncyCastle.Bcpg.OpenPgp;
-using Org.BouncyCastle.Security;
+using Passbolt.Api.Cryptography;
 
 namespace Passbolt.Api.Authentication;
 
@@ -19,29 +18,15 @@ internal static class GpgAuthTokenDecoder
 	/// <returns>The decrypted plaintext.</returns>
 	public static string Decrypt(string armoredMessage, string privateKeyArmored, string password)
 	{
-		// PgpEncryptedDataList reads its ciphertext lazily from the underlying stream, so the input and
-		// decoder streams MUST remain open until decryption and literal extraction have completed.
-		// Previously the parsing lived in a helper whose `using` blocks disposed those streams on
-		// return, so the later GetDataStream call failed with "Cannot access a closed Stream" (surfaced
-		// as "Exception starting decryption"). Keep everything in one scope. See issue #32.
+		// The ciphertext is read lazily, so these streams must stay open until extraction finishes (#32).
 		using var encryptedInput = new MemoryStream(Encoding.UTF8.GetBytes(armoredMessage));
 		using var decoderStream = PgpUtilities.GetDecoderStream(encryptedInput);
 
-		var factory = new PgpObjectFactory(decoderStream);
-		var encryptedDataList = factory.NextPgpObject() as PgpEncryptedDataList
-			?? factory.NextPgpObject() as PgpEncryptedDataList
-			?? throw new InvalidOperationException("Failed to parse encrypted Passbolt auth token.");
+		var encryptedDataList = PassboltPgp.ReadEncryptedDataList(decoderStream, "Failed to parse encrypted Passbolt auth token.");
 
-		var bundle = ReadSecretKeyBundle(privateKeyArmored);
+		var bundle = PassboltPgp.ReadSecretKeyBundle(privateKeyArmored);
 		using var clearStream = GetDecryptedStream(encryptedDataList, bundle, password);
-		return ExtractLiteralData(clearStream);
-	}
-
-	private static PgpSecretKeyRingBundle ReadSecretKeyBundle(string privateKeyArmored)
-	{
-		using var keyStream = new MemoryStream(Encoding.UTF8.GetBytes(privateKeyArmored));
-		using var keyDecoderStream = PgpUtilities.GetDecoderStream(keyStream);
-		return new PgpSecretKeyRingBundle(keyDecoderStream);
+		return PassboltPgp.ExtractLiteralData(clearStream, "Passbolt auth token", "Passbolt auth token contained unsupported PGP payload type");
 	}
 
 	private static Stream GetDecryptedStream(PgpEncryptedDataList encryptedDataList, PgpSecretKeyRingBundle bundle, string password)
@@ -59,61 +44,6 @@ internal static class GpgAuthTokenDecoder
 		return TryGetDecryptedDataStream(publicKeyEncryptedDataPackets, bundle, password)
 			?? throw new InvalidOperationException("Unable to decrypt Passbolt auth token with the configured private key.");
 	}
-
-	private static string ExtractLiteralData(Stream clearStream)
-	{
-		var plainFactory = new PgpObjectFactory(clearStream);
-		var plainObject = plainFactory.NextPgpObject();
-
-		// If the message is compressed, the literal data packet is read lazily from the
-		// decompression stream, so it must stay open until the literal has been fully read
-		// (mirrors the ciphertext-stream lifetime fix for issue #32).
-		Stream? decompressedStream = null;
-		try
-		{
-			if (plainObject is PgpCompressedData compressedData)
-			{
-				decompressedStream = compressedData.GetDataStream();
-				plainFactory = new PgpObjectFactory(decompressedStream);
-				plainObject = plainFactory.NextPgpObject();
-			}
-
-			var literalData = AdvanceToLiteralData(plainFactory, plainObject);
-
-			using var literalStream = literalData.GetInputStream();
-			using var reader = new StreamReader(literalStream, Encoding.UTF8);
-			return reader.ReadToEnd();
-		}
-		finally
-		{
-			decompressedStream?.Dispose();
-		}
-	}
-
-	/// <summary>
-	/// Walks the PGP object stream to the literal data packet, skipping the signature and marker
-	/// packets that legitimately precede it and rejecting anything else.
-	/// </summary>
-	private static PgpLiteralData AdvanceToLiteralData(PgpObjectFactory factory, PgpObject? pgpObject)
-	{
-		while (pgpObject is not null and not PgpLiteralData)
-		{
-			if (!IsSkippablePacket(pgpObject))
-			{
-				throw new InvalidOperationException($"Passbolt auth token contained unsupported PGP payload type {pgpObject.GetType().Name}.");
-			}
-
-			pgpObject = factory.NextPgpObject();
-		}
-
-		return pgpObject as PgpLiteralData
-			?? throw new InvalidOperationException("Passbolt auth token did not contain a literal data packet.");
-	}
-
-	private static bool IsSkippablePacket(PgpObject pgpObject)
-		=> pgpObject is PgpOnePassSignatureList
-			or PgpSignatureList
-			or PgpMarker;
 
 	private static Stream? TryGetDecryptedDataStream(
 		IEnumerable<PgpPublicKeyEncryptedData> encryptedPackets,

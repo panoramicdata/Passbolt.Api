@@ -49,9 +49,8 @@ public sealed class PassboltGroupsIntegrationTests(ITestOutputHelper testOutputH
 	[Fact]
 	public async Task Mutating_GroupLifecycle_IsCallable_WhenEnabled()
 	{
-		if (!Settings.RunMutatingIntegrationTests)
+		if (MutatingTestsDisabled("group"))
 		{
-			TestOutputHelper.WriteLine("Skipping mutating group lifecycle test because Passbolt:RunMutatingIntegrationTests is false.");
 			return;
 		}
 

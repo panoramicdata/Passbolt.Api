@@ -54,9 +54,8 @@ public sealed class PassboltUsersIntegrationTests(ITestOutputHelper testOutputHe
 	public async Task Mutating_UserLifecycle_IsCallable_WhenEnabled()
 	{
 		RequireAuthenticatedConfiguration();
-		if (!Settings.RunMutatingIntegrationTests)
+		if (MutatingTestsDisabled("user"))
 		{
-			TestOutputHelper.WriteLine("Skipping mutating user lifecycle test because Passbolt:RunMutatingIntegrationTests is false.");
 			return;
 		}
 

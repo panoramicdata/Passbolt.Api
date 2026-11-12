@@ -21,14 +21,21 @@ public static class Output
 	public static void Table(Table value)
 		=> AnsiConsole.Write(value);
 
-	/// <summary>Creates a bordered, rounded two-column "Field"/"Value" table.</summary>
-	public static Table TableBase()
+	/// <summary>Creates a bordered, rounded table with the given columns.</summary>
+	public static Table Grid(params string[] columns)
 	{
 		var table = new Table().Border(TableBorder.Rounded);
-		table.AddColumn("Field");
-		table.AddColumn("Value");
+		foreach (var column in columns)
+		{
+			table.AddColumn(column);
+		}
+
 		return table;
 	}
+
+	/// <summary>Creates a bordered, rounded two-column "Field"/"Value" table.</summary>
+	public static Table TableBase()
+		=> Grid("Field", "Value");
 
 	/// <summary>Writes an informational line to stderr, so it never pollutes JSON stdout.</summary>
 	public static void Info(string message)
