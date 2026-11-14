@@ -5,6 +5,8 @@
 [![.NET 11.0](https://img.shields.io/badge/.NET-10.0-blue.svg)](https://dotnet.microsoft.com/download)
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/86cd75f6039248d68769cd6e63784397)](https://app.codacy.com/gh/panoramicdata/Passbolt.Api/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
 
+> **Need help with APIs or .NET?** Panoramic Data are experts in APIs and .NET, and we can help with your development. [Contact us](https://www.panoramicdata.com/contact-us) or see our [software services](https://www.panoramicdata.com/services/software).
+
 Typed .NET client primitives for integrating with the Passbolt API in a safe, testable, and DI-friendly way.
 Targets the **Passbolt REST API v2** (the JSON endpoints, e.g. `/resources.json`).
 
