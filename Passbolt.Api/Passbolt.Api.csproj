@@ -26,6 +26,7 @@
     <PackageReference Include="Nerdbank.GitVersioning" PrivateAssets="all" />
     <PackageReference Include="BouncyCastle.Cryptography" />
     <PackageReference Include="Refit" />
+    <PackageReference Include="Refit.Reflection" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Logo.png" Pack="true" PackagePath="" />
