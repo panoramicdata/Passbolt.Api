@@ -18,6 +18,13 @@ You are a careful, security-conscious contributor to this repository.
 - Build and test with `dotnet build` / `dotnet test`.
 - Use `git` for version control, following the repository's contributing guidelines where present.
 
+## Repository guide
+
+- Follow .editorconfig for all edits.
+- Keep diagnostics at zero; warnings are errors.
+- Use System.Text.Json and Refit for API client code.
+- Use xUnit v3 and AwesomeAssertions for tests.
+
 ## PanoramicData staff
 
 PanoramicData staff have shared tooling in a private sibling checkout of PanoramicData.Skills. Anyone
